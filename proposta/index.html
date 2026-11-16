@@ -269,6 +269,7 @@ main{position:relative; z-index:1; flex:1; min-height:0; width:100%; max-width:1
 @media (orientation:landscape) and (max-height:599px){
   #v-luz{grid-template-columns:minmax(0,1fr) minmax(0,1fr); grid-template-rows:minmax(0,1fr); grid-template-areas:"wheel bright"}
   #v-luz.show-colors .colors{flex-direction:row}
+  #v-luz.show-colors{grid-template-columns:minmax(0,1fr); grid-template-rows:minmax(0,1fr)}
   .fxgrid{grid-template-columns:repeat(3, minmax(0,1fr))}
   #v-timer{grid-template-columns:1fr 1fr; grid-template-rows:minmax(0,1fr)}
 }
@@ -282,32 +283,35 @@ main{position:relative; z-index:1; flex:1; min-height:0; width:100%; max-width:1
   nav.tabs button{flex-direction:row; gap:7px; font:600 15px/1 var(--font); letter-spacing:-.01em; border-radius:22px}
   nav.tabs button svg{width:20px; height:20px}
   nav.tabs .lens{border-radius:22px}
-  [data-view="v-cores"]{display:none !important}
-  #v-luz, #v-luz.show-colors{grid-template-columns:minmax(0,1fr) minmax(0,1fr); grid-template-rows:var(--wp, minmax(0,1.1fr)) minmax(0,1fr); grid-template-areas:"wheel wheel" "bright colors"}
-  #v-luz .wheel-zone, #v-luz .bright{display:grid !important}
-  #v-luz .colors{display:flex !important}
-  .bright{grid-template-columns:minmax(0,1fr); grid-template-rows:minmax(0,1fr) clamp(132px, 22%, 156px)}
-  .bright .power{flex-direction:row; align-items:center; justify-content:flex-start; gap:14px}
+  nav.tabs{grid-auto-columns:116px}
+  #v-luz{grid-template-columns:minmax(0,1fr); grid-template-rows:var(--wp, minmax(0,1.2fr)) minmax(0,1fr); grid-template-areas:"wheel" "bright"}
+  .fav{width:min(80px,100%)}
   .fxgrid{grid-template-columns:repeat(3, minmax(0,1fr))}
   #v-timer{grid-template-columns:1fr 1fr; grid-template-rows:minmax(0,1fr)}
   #v-timer .list{display:none}
   #v-timer .routine{display:flex}
 }
 @media (min-width:700px) and (min-height:600px) and (orientation:landscape){
-  #v-luz, #v-luz.show-colors{grid-template-columns:min(var(--wh, 46%), 48%) minmax(0,.7fr) minmax(0,1fr); grid-template-rows:minmax(0,1fr); grid-template-areas:"wheel bright colors"}
+  #v-luz{grid-template-columns:min(var(--wh, 60%), 64%) minmax(0,1fr); grid-template-rows:minmax(0,1fr); grid-template-areas:"wheel bright"}
+  .bright{grid-template-columns:minmax(0,1fr); grid-template-rows:minmax(0,1fr) clamp(132px, 24%, 168px)}
+  .bright .power{flex-direction:row; align-items:center; justify-content:flex-start; gap:16px}
+  #v-luz.show-colors .colors{flex-direction:row}
+  #v-luz.show-colors{grid-template-columns:minmax(0,1fr); grid-template-rows:minmax(0,1fr)}
   .colors .favs-m, .colors .whites-m{flex:1}
   .whites{grid-template-columns:1fr; grid-auto-rows:minmax(0,1fr); gap:8px}
   .white{flex-direction:row-reverse; align-items:center; padding:0 16px; border-radius:18px}
   .white .top{width:auto; align-items:center; gap:10px}
   .white .k{padding-top:0}
   .white > span:last-child{display:flex; align-items:baseline; gap:8px}
-  .white small{display:none}
-  .white b{font-size:17px}
+  .white small{margin-top:0}
+  .white b{font-size:20px}
+  .white small{font-size:15px}
+  .white .k{font-size:15px}
+  .white{padding:0 22px}
 }
 /* iPad de pé */
 @media (min-width:700px) and (min-height:600px) and (orientation:portrait){
-  .fav{width:min(50px,100%)}
-  .colors .favs-m{flex:1.5}
+  .colors .favs-m{flex:1.3}
   #v-timer{grid-template-columns:1fr; grid-template-rows:minmax(0,1.5fr) minmax(0,1fr)}
   #v-timer .routine{flex-direction:row}
   .fxgrid{grid-template-columns:repeat(2, minmax(0,1fr))}
@@ -637,7 +641,7 @@ wide.addEventListener('change',relayout); addEventListener('resize',relayout);
 // iPad: a coluna/linha da roda tem exatamente o tamanho do maior círculo que cabe
 const mainEl=$('main');
 new ResizeObserver(()=>{ const h=mainEl.clientHeight, w=mainEl.clientWidth;
-  css.setProperty('--wh', h+'px'); css.setProperty('--wp', Math.round(Math.min(w, h*.47))+'px'); placeK(false); }).observe(mainEl);
+  css.setProperty('--wh', h+'px'); css.setProperty('--wp', Math.round(Math.min(w, h*.6))+'px'); placeK(false); }).observe(mainEl);
 paint(); shown.jump(S.b); select(tabs[0],false);
 new ResizeObserver(()=>shown.cb(shown.x)).observe(cap);
 </script>

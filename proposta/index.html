@@ -12,15 +12,15 @@
    Tokens — cores do sistema iOS, laranja como cor da app
    ============================================================ */
 :root{
-  --bg:#f2f2f7; --ink:#000; --ink-2:rgba(60,60,67,.6); --ink-3:rgba(60,60,67,.3);
+  --bg:#ffffff; --ink:#000; --ink-2:rgba(60,60,67,.6); --ink-3:rgba(60,60,67,.3);
   --fill:rgba(120,120,128,.16); --fill-2:rgba(120,120,128,.12); --sep:rgba(60,60,67,.18);
   --solid:#fff; --seg-sel:#fff; --menu-bg:rgba(250,250,252,.9);
   --tint:255,149,0;                 /* laranja do sistema (claro) */
   --green:52,199,89;
   /* vidro: iOS 27 — menos transparente, contorno mais definido */
-  --g-bg:rgba(255,255,255,.62); --g-bg-strong:rgba(255,255,255,.78);
+  --g-bg:rgba(255,255,255,.66); --g-bg-strong:rgba(255,255,255,.8);
   --g-rim-a:rgba(255,255,255,.95); --g-rim-b:rgba(255,255,255,.25); --g-line:rgba(0,0,0,.07);
-  --g-shadow:0 8px 28px rgba(0,0,0,.10), 0 1px 2px rgba(0,0,0,.06);
+  --g-shadow:0 10px 32px rgba(0,0,0,.08), 0 2px 6px rgba(0,0,0,.04);
   --g-spec:rgba(255,255,255,.55);
   --light:255,140,60; --glow:.85;
   --pad:20px; --gap:14px; --r:32px;
@@ -59,7 +59,7 @@ button{font:inherit; letter-spacing:inherit; color:inherit; border:0; background
     radial-gradient(38% 34% at 78% 40%, rgba(var(--light),.55), transparent 72%),
     radial-gradient(60% 34% at 50% 96%, rgba(var(--light),.38), transparent 72%);
   filter:blur(48px) saturate(1.1)}
-@media (prefers-color-scheme: light){ #ambient{mix-blend-mode:multiply; opacity:calc(var(--glow) * .9)} }
+@media (prefers-color-scheme: light){ #ambient{opacity:calc(var(--glow) * .6)} }
 
 /* ============================================================
    Liquid Glass (aproximação web): corpo translúcido, aro de luz,
@@ -144,12 +144,12 @@ main{position:relative; z-index:1; flex:1; min-height:0; width:100%; max-width:1
 .capsule .fill{position:absolute; inset:0; background:rgb(var(--tint)); transform-origin:50% 100%; will-change:transform}
 .capsule .fill::before{content:""; position:absolute; inset:0; background:linear-gradient(180deg, rgba(255,255,255,.28), transparent 30%)}
 .capsule .sun{position:absolute; left:50%; bottom:22px; width:30px; height:30px; margin-left:-15px; color:#fff; filter:drop-shadow(0 1px 2px rgba(0,0,0,.35)); pointer-events:none; will-change:transform}
-.bside{display:flex; flex-direction:column; justify-content:space-between; min-width:0; padding:4px 4px 2px 0}
+.bside{display:flex; flex-direction:column; justify-content:space-between; align-items:flex-end; text-align:right; min-width:0; padding:4px 2px 2px 0}
 .bside .label{font:600 20px/1.2 var(--display); letter-spacing:-.01em}
 .bside .state{font-size:15px; color:var(--ink-2); margin-top:2px}
 .readout{font:600 clamp(44px, 9vmin, 64px)/1 var(--rounded); letter-spacing:-.02em; font-variant-numeric:tabular-nums}
 .readout span{font-size:.45em; font-weight:600; color:var(--ink-2); margin-left:2px}
-.power{align-self:flex-start; width:68px; height:68px; border-radius:50%; display:grid; place-items:center; transition:transform .25s cubic-bezier(.3,1.4,.5,1), background-color .3s, color .3s}
+.power{align-self:flex-end; width:68px; height:68px; border-radius:50%; display:grid; place-items:center; transition:transform .25s cubic-bezier(.3,1.4,.5,1), background-color .3s, color .3s}
 .power:active{transform:scale(.9)}
 .power svg{width:28px; height:28px}
 .power[aria-pressed="true"]{background:rgba(var(--tint),.95); color:#fff; box-shadow:0 10px 30px rgba(var(--tint),.45), 0 0 0 .5px rgba(0,0,0,.1)}
@@ -157,10 +157,10 @@ main{position:relative; z-index:1; flex:1; min-height:0; width:100%; max-width:1
 
 /* ---------- Cores (favoritas + brancos) ---------- */
 .colors{grid-area:colors; display:flex; flex-direction:column; gap:var(--gap); min-height:0}
-.colors .favs-m{flex:1.35}
+.colors .favs-m{flex:1.25}
 .colors .whites-m{flex:1}
-.favs{flex:1; min-height:0; display:grid; grid-template-columns:repeat(4, 1fr); align-content:space-evenly; justify-items:center; row-gap:12px}
-.fav{position:relative; width:min(62px, 100%); aspect-ratio:1; border-radius:50%; transition:transform .25s cubic-bezier(.3,1.4,.5,1);
+.favs{flex:1; min-height:0; display:grid; grid-template-columns:repeat(4, 1fr); align-content:space-evenly; justify-items:center; row-gap:12px; column-gap:10px}
+.fav{position:relative; width:min(64px, 100%); aspect-ratio:1; border-radius:50%; transition:transform .25s cubic-bezier(.3,1.4,.5,1);
   box-shadow:inset 0 0 0 .5px rgba(0,0,0,.15), inset 0 6px 10px rgba(255,255,255,.18)}
 .fav:active{transform:scale(.88)}
 .fav[aria-current="true"]{box-shadow:0 0 0 3px var(--solid), 0 0 0 5.5px var(--ink), inset 0 6px 10px rgba(255,255,255,.18)}
@@ -173,6 +173,8 @@ main{position:relative; z-index:1; flex:1; min-height:0; width:100%; max-width:1
 .white b{display:block; font:600 17px/1.2 var(--font)}
 .white small{display:block; margin-top:2px; font-size:13px; opacity:.6; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:100%}
 .white > span:last-child{min-width:0; max-width:100%}
+.white .top{display:flex; justify-content:space-between; align-items:flex-start; width:100%}
+.white .k{white-space:nowrap; font:600 13px/1 var(--rounded); letter-spacing:0; opacity:.55; font-variant-numeric:tabular-nums; padding-top:4px}
 .white .chk{width:24px; height:24px; border-radius:50%; background:rgba(0,0,0,.08); display:grid; place-items:center; opacity:0; transform:scale(.6); transition:opacity .2s, transform .3s cubic-bezier(.3,1.5,.5,1)}
 .white .chk svg{width:14px; height:14px}
 .white[aria-pressed="true"] .chk{opacity:1; transform:none; background:#1c1c1e; color:#fff}
@@ -183,8 +185,13 @@ main{position:relative; z-index:1; flex:1; min-height:0; width:100%; max-width:1
 .fxc{position:relative; border-radius:var(--r); padding:18px; text-align:left; display:flex; flex-direction:column; justify-content:space-between; min-height:0;
   transition:transform .25s cubic-bezier(.3,1.4,.5,1)}
 .fxc:active{transform:scale(.96)}
-.fxc .dots{display:flex; gap:6px}
-.fxc .dots i{width:14px; height:14px; border-radius:50%; background:var(--c); box-shadow:0 0 12px var(--c)}
+.fxc{overflow:hidden; isolation:isolate}
+.fxc .pv{position:absolute; inset:-20%; z-index:-1; pointer-events:none; filter:blur(22px) saturate(1.2); opacity:.6;
+  -webkit-mask:linear-gradient(#000 35%, transparent 78%); mask:linear-gradient(#000 35%, transparent 78%); transition:opacity .4s}
+.fxc[aria-pressed="true"] .pv{opacity:.95; animation:drift 6s ease-in-out infinite alternate}
+@keyframes drift{from{transform:translate3d(-4%,-2%,0) scale(1)} to{transform:translate3d(4%,3%,0) scale(1.08)}}
+.fxc .dots{display:flex; gap:6px; position:relative}
+.fxc .dots i{width:14px; height:14px; border-radius:50%; background:var(--c); box-shadow:0 0 0 .5px rgba(0,0,0,.18), 0 0 12px var(--c)}
 .fxc b{display:block; font:600 17px/1.2 var(--font)}
 .fxc small{display:block; font-size:13px; color:var(--ink-2); margin-top:2px}
 .fxc .chk{position:absolute; top:16px; right:16px; width:26px; height:26px; border-radius:50%; background:rgb(var(--tint)); color:#fff; display:grid; place-items:center;
@@ -207,8 +214,22 @@ main{position:relative; z-index:1; flex:1; min-height:0; width:100%; max-width:1
 /* ---------- Horários ---------- */
 #v-timer{grid-template-rows:minmax(0,1fr) auto}
 .sleep{justify-content:space-between}
-.big{flex:1; min-height:0; display:flex; align-items:center; justify-content:center; gap:8px; font:300 clamp(64px, 16vmin, 120px)/1 var(--rounded); letter-spacing:-.03em; font-variant-numeric:tabular-nums}
-.big span{font:600 20px/1 var(--font); color:var(--ink-2); letter-spacing:0; align-self:center; margin-top:.9em}
+.dial{flex:1; min-height:0; container-type:size; display:grid; place-items:center; margin-bottom:16px}
+.ring{position:relative; width:min(100cqw,100cqh); aspect-ratio:1; display:grid; place-items:center}
+.ring svg{position:absolute; inset:0; width:100%; height:100%; transform:rotate(-90deg)}
+.ring .trk{stroke:var(--fill)}
+.ring .arc{stroke:rgb(var(--tint)); stroke-linecap:round}
+.big{display:flex; align-items:baseline; gap:6px; font:300 min(30cqmin, 120px)/1 var(--rounded); letter-spacing:-.03em; font-variant-numeric:tabular-nums}
+.big span{font:600 max(15px, 6cqmin)/1 var(--font); color:var(--ink-2); letter-spacing:0}
+.routine{display:none; flex-direction:column; gap:var(--gap); min-height:0}
+.rcard{flex:1; justify-content:space-between}
+.rcard .top{display:flex; justify-content:space-between; align-items:center}
+.rcard .top h2{margin:0; font:600 20px/1.2 var(--display); letter-spacing:-.01em}
+.rcard .top small{display:block; font-size:15px; color:var(--ink-2); margin-top:2px}
+.rtime{font:300 clamp(56px, 9vmin, 88px)/1 var(--rounded); letter-spacing:-.03em; font-variant-numeric:tabular-nums}
+.days{display:grid; grid-template-columns:repeat(7,1fr); gap:8px}
+.days button{height:40px; border-radius:20px; background:var(--fill-2); font:600 15px var(--font); color:var(--ink)}
+.days button[aria-pressed="true"]{background:rgba(var(--tint),.18); color:rgb(var(--tint))}
 .seg{position:relative; display:grid; grid-auto-flow:column; grid-auto-columns:1fr; height:44px; padding:3px; border-radius:22px; background:var(--fill-2)}
 .seg button{position:relative; z-index:1; border-radius:19px; font:600 15px var(--font); color:var(--ink)}
 .seg .slens{position:absolute; z-index:0; top:3px; bottom:3px; left:0; border-radius:19px; background:var(--seg-sel);
@@ -254,22 +275,39 @@ main{position:relative; z-index:1; flex:1; min-height:0; width:100%; max-width:1
   nav.tabs button svg{width:20px; height:20px}
   nav.tabs .lens{border-radius:22px}
   [data-view="v-cores"]{display:none !important}
-  #v-luz, #v-luz.show-colors{grid-template-columns:minmax(0,1fr) minmax(0,1fr); grid-template-rows:minmax(0,1.1fr) minmax(0,1fr); grid-template-areas:"wheel wheel" "bright colors"}
+  #v-luz, #v-luz.show-colors{grid-template-columns:minmax(0,1fr) minmax(0,1fr); grid-template-rows:var(--wp, minmax(0,1.1fr)) minmax(0,1fr); grid-template-areas:"wheel wheel" "bright colors"}
   #v-luz .wheel-zone, #v-luz .bright{display:grid !important}
   #v-luz .colors{display:flex !important}
   .bright{grid-template-columns:minmax(110px,42%) 1fr; padding:18px}
   .fxgrid{grid-template-columns:repeat(3, minmax(0,1fr))}
-  #v-timer{grid-template-columns:1.1fr 1fr; grid-template-rows:minmax(0,1fr)}
-  #v-timer .list{align-self:start}
+  #v-timer{grid-template-columns:1fr 1fr; grid-template-rows:minmax(0,1fr)}
+  #v-timer .list{display:none}
+  #v-timer .routine{display:flex}
 }
 @media (min-width:700px) and (min-height:600px) and (orientation:landscape){
-  #v-luz, #v-luz.show-colors{grid-template-columns:minmax(0,1.08fr) minmax(0,.62fr) minmax(0,.9fr); grid-template-rows:minmax(0,1fr); grid-template-areas:"wheel bright colors"}
+  #v-luz, #v-luz.show-colors{grid-template-columns:min(var(--wh, 46%), 48%) minmax(0,.7fr) minmax(0,1fr); grid-template-rows:minmax(0,1fr); grid-template-areas:"wheel bright colors"}
   .bright{grid-template-columns:1fr; grid-template-rows:auto minmax(0,1fr) auto; padding:var(--pad)}
   .bright .bside{display:contents}
-  .bright .bhead{grid-row:1}
+  .bright .bhead{grid-row:1; justify-self:start; text-align:left}
   .bright .readout{display:none}
   .bright .capsule{grid-row:2}
   .bright .power{grid-row:3; justify-self:center; align-self:center}
+  .colors .favs-m, .colors .whites-m{flex:1}
+  .whites{grid-template-columns:1fr; grid-auto-rows:minmax(0,1fr); gap:8px}
+  .white{flex-direction:row-reverse; align-items:center; padding:0 16px; border-radius:18px}
+  .white .top{width:auto; align-items:center; gap:10px}
+  .white .k{padding-top:0}
+  .white > span:last-child{display:flex; align-items:baseline; gap:8px}
+  .white small{display:none}
+  .white b{font-size:17px}
+}
+/* iPad de pé */
+@media (min-width:700px) and (min-height:600px) and (orientation:portrait){
+  .fav{width:min(50px,100%)}
+  .colors .favs-m{flex:1.5}
+  #v-timer{grid-template-columns:1fr; grid-template-rows:minmax(0,1.5fr) minmax(0,1fr)}
+  #v-timer .routine{flex-direction:row}
+  .fxgrid{grid-template-columns:repeat(2, minmax(0,1fr))}
 }
 /* Ecrãs baixos (iPhone pequeno, Bluefy com barras) */
 @media (max-height:620px){
@@ -279,7 +317,7 @@ main{position:relative; z-index:1; flex:1; min-height:0; width:100%; max-width:1
 }
 
 @media (prefers-reduced-motion: reduce){
-  #ambient{transition:none} .fxc .dots i{animation:none !important}
+  #ambient{transition:none} .fxc .dots i, .fxc .pv{animation:none !important}
   .switch::after, .slider .thumb, .white .chk, .fxc .chk{transition:none}
 }
 @media (prefers-reduced-transparency: reduce){
@@ -343,9 +381,9 @@ main{position:relative; z-index:1; flex:1; min-height:0; width:100%; max-width:1
         <div class="mh"><h2>Brancos</h2></div>
         <div class="whites">
           <!-- data-send: valores enviados à fita (a afinar com a fita real) · data-show: tom mostrado no botão -->
-          <button class="white" data-send="255,110,20"  data-show="#ffc98f"><span class="chk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></span><span><b>Quente</b><small>Fim do dia</small></span></button>
-          <button class="white" data-send="255,170,70"  data-show="#ffeacc"><span class="chk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></span><span><b>Neutra</b><small>Dia a dia</small></span></button>
-          <button class="white" data-send="255,215,150" data-show="#eef3ff"><span class="chk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></span><span><b>Fria</b><small>Foco</small></span></button>
+          <button class="white" data-send="255,110,20"  data-show="#ffc98f"><span class="top"><span class="k">2700 K</span><span class="chk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></span></span><span><b>Quente</b><small>Fim do dia</small></span></button>
+          <button class="white" data-send="255,170,70"  data-show="#ffeacc"><span class="top"><span class="k">4000 K</span><span class="chk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></span></span><span><b>Neutra</b><small>Dia a dia</small></span></button>
+          <button class="white" data-send="255,215,150" data-show="#eef3ff"><span class="top"><span class="k">6500 K</span><span class="chk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></span></span><span><b>Fria</b><small>Foco</small></span></button>
         </div>
       </div>
     </div>
@@ -364,12 +402,27 @@ main{position:relative; z-index:1; flex:1; min-height:0; width:100%; max-width:1
   <section id="v-timer" class="view" hidden>
     <div class="module glass sleep">
       <div class="mh"><h2>Desligar daqui a</h2></div>
-      <div class="big" id="big">30<span>min</span></div>
+      <div class="dial"><div class="ring">
+        <svg viewBox="0 0 100 100" aria-hidden="true"><circle class="trk" cx="50" cy="50" r="45" fill="none" stroke-width="5"/><circle class="arc" id="arc" cx="50" cy="50" r="45" fill="none" stroke-width="5" pathLength="100" stroke-dasharray="100" stroke-dashoffset="75"/></svg>
+        <div class="big" id="big">30<span>min</span></div>
+      </div></div>
       <div class="seg" id="seg" role="radiogroup" aria-label="Minutos">
         <div class="slens" id="slens"></div>
         <button role="radio" aria-checked="false">15</button><button role="radio" aria-checked="true">30</button><button role="radio" aria-checked="false">60</button><button role="radio" aria-checked="false">90</button>
       </div>
       <button class="pill-btn glass tinted" id="go">Iniciar</button>
+    </div>
+    <div class="routine">
+      <div class="module glass rcard">
+        <div class="top"><div><h2>Acordar</h2><small>Acende devagar</small></div><button class="switch" role="switch" aria-checked="false" aria-label="Acender ao acordar"></button></div>
+        <div class="rtime">07:30</div>
+        <div class="days" aria-label="Dias"><button aria-pressed="true">S</button><button aria-pressed="true">T</button><button aria-pressed="true">Q</button><button aria-pressed="true">Q</button><button aria-pressed="true">S</button><button aria-pressed="false">S</button><button aria-pressed="false">D</button></div>
+      </div>
+      <div class="module glass rcard">
+        <div class="top"><div><h2>Deitar</h2><small>Apaga devagar</small></div><button class="switch" role="switch" aria-checked="true" aria-label="Apagar ao deitar"></button></div>
+        <div class="rtime">00:00</div>
+        <div class="days" aria-label="Dias"><button aria-pressed="true">S</button><button aria-pressed="true">T</button><button aria-pressed="true">Q</button><button aria-pressed="true">Q</button><button aria-pressed="true">S</button><button aria-pressed="true">S</button><button aria-pressed="true">D</button></div>
+      </div>
     </div>
     <div class="module glass list">
       <div class="row"><span>Acender ao acordar</span><button class="switch" role="switch" aria-checked="false" aria-label="Acender ao acordar"></button></div>
@@ -491,9 +544,9 @@ $('#power').addEventListener('click',()=>{ S.on=!S.on; paint(); shown.cb(shown.x
 /* ============================================================
    Favoritas e brancos
    ============================================================ */
-const favs=[[0,1],[28,.78],[48,.95],[130,.8],[190,.85],[215,1],[330,.75]];
+const favs=[[0,1],[16,.9],[28,.78],[48,.95],[85,.75],[130,.8],[165,.8],[190,.85],[215,1],[275,.7],[330,.75]];
 function renderFavs(){ const box=$('#favs'); box.innerHTML='';
-  favs.slice(-7).forEach(([h,s])=>{ const [r,g,b]=hsv(h,s), el=document.createElement('button'); el.className='fav';
+  favs.slice(-11).forEach(([h,s])=>{ const [r,g,b]=hsv(h,s), el=document.createElement('button'); el.className='fav';
     el.style.background=`rgb(${r},${g},${b})`; el.dataset.c=`${r},${g},${b}`; el.setAttribute('aria-label','Cor favorita');
     el.onclick=()=>{ S.h=h; S.s=s; S.white=null; S.on=true; placeK(true,{damping:1,response:.45}); paint(); shown.cb(shown.x); };
     box.appendChild(el); });
@@ -513,11 +566,13 @@ const FX=[
   ['Vela','Tremeluzir quente',['#ff9f0a','#ff6a00','#ffb340']],
   ['Pulsar','Vermelho e laranja',['#ff2d55','#ff9f0a']],
   ['Oceano','Verde e azul',['#30d158','#64d2ff','#0a84ff']],
-  ['Estroboscópio','Branco rápido',['#ffffff','#ffffff','#ffffff','#ffffff']],
+  ['Estroboscópio','Branco rápido',['#ffffff','#dfe6f2','#ffffff','#dfe6f2']],
 ];
 const fxBox=$('#fx');
 FX.forEach(([n,d,cs])=>{ const b=document.createElement('button'); b.className='fxc glass'; b.setAttribute('aria-pressed','false');
-  b.innerHTML=`<span class="dots">${cs.map((c,i)=>`<i style="--c:${c};--i:${i}"></i>`).join('')}</span><span><b>${n}</b><small>${d}</small></span><span class="chk">${CHECK}</span>`;
+  const pos=['25% 30%','72% 28%','48% 62%','85% 70%','15% 75%'];
+  const pv=cs.map((c,i)=>`radial-gradient(circle at ${pos[i%5]}, ${c} 0, transparent 46%)`).join(',');
+  b.innerHTML=`<span class="pv" style="background:${pv}"></span><span class="dots">${cs.map((c,i)=>`<i style="--c:${c};--i:${i}"></i>`).join('')}</span><span><b>${n}</b><small>${d}</small></span><span class="chk">${CHECK}</span>`;
   b.onclick=()=>{ const on=b.getAttribute('aria-pressed')!=='true'; $$('.fxc').forEach(x=>x.setAttribute('aria-pressed', x===b && on)); };
   fxBox.appendChild(b); });
 
@@ -533,11 +588,13 @@ FX.forEach(([n,d,cs])=>{ const b=document.createElement('button'); b.className='
 /* ============================================================
    Horários: controlo segmentado com lente, interruptores
    ============================================================ */
+const arc=$('#arc'), arcS=new Spring(.25,{damping:.9,response:.45}); arcS.cb=x=>arc.setAttribute('stroke-dashoffset',(100-x*100).toFixed(2));
 (function(){ const seg=$('#seg'), lens=$('#slens'), bs=[...seg.querySelectorAll('button')];
   const lx=new Spring(0,{damping:.85,response:.32}); let w=0; lx.cb=x=>{ lens.style.transform=`translateX(${x}px)`; lens.style.width=w+'px'; };
-  const sel=(b,anim)=>{ bs.forEach(x=>x.setAttribute('aria-checked',x===b)); w=b.offsetWidth; anim?lx.to(b.offsetLeft):lx.jump(b.offsetLeft); $('#big').firstChild.textContent=b.textContent; };
+  const sel=(b,anim)=>{ bs.forEach(x=>x.setAttribute('aria-checked',x===b)); w=b.offsetWidth; anim?lx.to(b.offsetLeft):lx.jump(b.offsetLeft); $('#big').firstChild.textContent=b.textContent; arcS[anim?'to':'jump'](+b.textContent/120); };
   bs.forEach(b=>b.onclick=()=>sel(b,true));
   new ResizeObserver(()=>sel(bs.find(b=>b.getAttribute('aria-checked')==='true'),false)).observe(seg); })();
+$$('.days button').forEach(d=>d.onclick=()=>d.setAttribute('aria-pressed', d.getAttribute('aria-pressed')!=='true'));
 $$('.switch').forEach(s=>s.onclick=()=>s.setAttribute('aria-checked', s.getAttribute('aria-checked')!=='true'));
 
 /* ============================================================
@@ -575,6 +632,10 @@ const wide=matchMedia('(min-width:700px) and (min-height:600px)');
 const relayout=()=>{ if(wide.matches && cur.dataset.view==='v-cores') select(tabs[0],false); else select(cur,false); };
 wide.addEventListener('change',relayout); addEventListener('resize',relayout);
 
+// iPad: a coluna/linha da roda tem exatamente o tamanho do maior círculo que cabe
+const mainEl=$('main');
+new ResizeObserver(()=>{ const h=mainEl.clientHeight, w=mainEl.clientWidth;
+  css.setProperty('--wh', h+'px'); css.setProperty('--wp', Math.round(Math.min(w, h*.47))+'px'); placeK(false); }).observe(mainEl);
 paint(); shown.jump(S.b); select(tabs[0],false);
 </script>
 </body>

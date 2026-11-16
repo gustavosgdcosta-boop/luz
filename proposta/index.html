@@ -1,0 +1,381 @@
+<!doctype html>
+<html lang="pt-PT">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#000000">
+<title>Luz — proposta</title>
+<style>
+:root{
+  --bg:#f2f2f7; --surface:#ffffff; --surface-2:#e9e9ee; --ink:#000; --ink-2:rgba(60,60,67,.62); --ink-3:rgba(60,60,67,.3);
+  --sep:rgba(60,60,67,.14); --tint:#0a7aff;
+  --glass:rgba(250,250,252,.72); --glass-edge:rgba(255,255,255,.9); --glass-rim:rgba(0,0,0,.08);
+  --shadow:0 10px 30px rgba(0,0,0,.10), 0 1px 3px rgba(0,0,0,.06);
+  --r-card:26px; --r-ctl:999px;
+  --light:255,140,60;            /* cor atual da fita (r,g,b) */
+  --glow:.8;                     /* intensidade do brilho ambiente */
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#000; --surface:#1c1c1e; --surface-2:#2c2c2e; --ink:#fff; --ink-2:rgba(235,235,245,.62); --ink-3:rgba(235,235,245,.28);
+    --sep:rgba(84,84,88,.5); --tint:#0a84ff;
+    --glass:rgba(58,58,62,.62); --glass-edge:rgba(255,255,255,.22); --glass-rim:rgba(0,0,0,.4);
+    --shadow:0 12px 34px rgba(0,0,0,.5), 0 1px 2px rgba(0,0,0,.4);
+  }
+}
+*{box-sizing:border-box; -webkit-tap-highlight-color:transparent; -webkit-user-select:none; user-select:none}
+html{background:var(--bg); height:100%}
+body{margin:0; min-height:100%; background:var(--bg); color:var(--ink);
+  font:17px/1.3 -apple-system, "SF Pro Text", system-ui, sans-serif; -webkit-font-smoothing:antialiased; overflow-x:hidden;
+  padding:env(safe-area-inset-top) max(16px, env(safe-area-inset-right)) calc(110px + env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+}
+
+/* Brilho ambiente: a luz da fita "acende" o ecrã por trás do conteúdo */
+#ambient{position:fixed; inset:-20%; z-index:0; pointer-events:none; opacity:var(--glow);
+  background:
+    radial-gradient(40% 35% at 30% 8%, rgba(var(--light),.55), transparent 70%),
+    radial-gradient(45% 40% at 85% 30%, rgba(var(--light),.28), transparent 70%);
+  filter:blur(30px); transition:opacity .5s ease;}
+main,header{position:relative; z-index:1; max-width:1040px; margin:0 auto}
+
+/* Cabeçalho com título grande */
+header{display:flex; align-items:flex-end; justify-content:space-between; gap:12px; padding:28px 4px 18px}
+h1{font:700 34px/1.08 -apple-system, "SF Pro Display", system-ui; letter-spacing:.012em; margin:0}
+.eyebrow{font-size:15px; color:var(--ink-2); margin:0 0 4px; letter-spacing:-.01em}
+
+/* Vidro (Liquid Glass aproximado): só em controlos e navegação */
+.glass{background:var(--glass); -webkit-backdrop-filter:blur(24px) saturate(180%); backdrop-filter:blur(24px) saturate(180%);
+  box-shadow:inset 0 1px 0 var(--glass-edge), inset 0 0 0 .5px var(--glass-edge), 0 0 0 .5px var(--glass-rim), var(--shadow);}
+
+.pill{display:inline-flex; align-items:center; gap:8px; height:36px; padding:0 14px 0 12px; border-radius:var(--r-ctl);
+  font-size:15px; font-weight:500; border:0; color:var(--ink)}
+.pill .dot{width:8px; height:8px; border-radius:50%; background:#34c759; box-shadow:0 0 0 3px rgba(52,199,89,.2)}
+
+/* Grelha de cartões */
+.grid{display:grid; gap:16px; grid-template-columns:minmax(0,1fr) 168px; grid-template-areas:"wheel bright" "favs bright"}
+@media (min-width:820px){
+  .grid{grid-template-columns:minmax(0,1.25fr) 200px minmax(0,1fr); grid-template-areas:"wheel bright favs"}
+}
+.card{background:var(--surface); border-radius:var(--r-card); padding:20px; position:relative}
+.card h2{font:600 13px/1 -apple-system, system-ui; letter-spacing:.01em; text-transform:uppercase; color:var(--ink-2); margin:0 0 16px}
+
+
+/* Roda de cor */
+.wheel-card{grid-area:wheel}
+.wheel{position:relative; width:100%; max-width:380px; aspect-ratio:1; margin:4px auto 0; border-radius:50%; touch-action:none;
+  background:radial-gradient(circle closest-side, #fff 0%, rgba(255,255,255,0) 100%),
+             conic-gradient(from 90deg, #f00, #ff0, #0f0, #0ff, #00f, #f0f, #f00);
+  box-shadow:inset 0 0 0 .5px rgba(0,0,0,.12)}
+.knob{position:absolute; left:0; top:0; width:44px; height:44px; margin:-22px 0 0 -22px; border-radius:50%;
+  background:rgb(var(--light)); border:4px solid #fff; box-shadow:0 4px 14px rgba(0,0,0,.28), 0 0 0 .5px rgba(0,0,0,.15);
+  will-change:transform; pointer-events:none}
+
+/* Brilho: azulejo alto, estilo Centro de Controlo */
+.bright-card{grid-area:bright; display:flex; flex-direction:column; align-items:center; padding:20px 16px}
+.bright-card h2{align-self:flex-start}
+.tile{position:relative; flex:1; width:100%; min-height:300px; max-height:460px; border-radius:30px; overflow:hidden;
+  background:var(--surface-2); touch-action:none; cursor:grab; transform-origin:50% 100%; will-change:transform}
+.tile .fill{position:absolute; left:0; right:0; bottom:0; height:100%; background:rgb(var(--light)); transform-origin:50% 100%; will-change:transform}
+.tile .icon{position:absolute; left:50%; bottom:22px; width:30px; height:30px; margin-left:-15px; color:rgba(0,0,0,.55); pointer-events:none}
+.tile .pct{position:absolute; left:0; right:0; top:18px; text-align:center; font:600 22px/1 -apple-system, "SF Pro Rounded", system-ui;
+  font-variant-numeric:tabular-nums; letter-spacing:-.01em; color:var(--ink); pointer-events:none; mix-blend-mode:normal}
+.power{margin-top:14px; width:64px; height:64px; border-radius:50%; border:0; display:grid; place-items:center; color:var(--ink);
+  cursor:pointer; touch-action:manipulation; transition:transform .12s ease-out, background-color .25s, color .25s}
+.power:active{transform:scale(.92)}
+.power[aria-pressed="true"]{background:rgb(var(--light)); color:#000; box-shadow:0 8px 24px rgba(var(--light),.45), inset 0 1px 0 rgba(255,255,255,.6)}
+.power svg{width:26px; height:26px}
+
+/* Favoritos */
+.favs-card{grid-area:favs}
+.favs{display:grid; grid-template-columns:repeat(auto-fill, minmax(56px,1fr)); gap:14px; justify-items:center}
+.fav{width:56px; height:56px; border-radius:50%; border:0; cursor:pointer; position:relative; touch-action:manipulation;
+  box-shadow:inset 0 0 0 .5px rgba(0,0,0,.12); transition:transform .12s ease-out}
+.fav:active{transform:scale(.9)}
+.fav[aria-current="true"]::after{content:""; position:absolute; inset:-5px; border-radius:50%; border:2.5px solid var(--ink)}
+.fav.add{background:var(--surface-2); color:var(--ink-2); display:grid; place-items:center}
+.fav.add svg{width:22px; height:22px}
+.whites{display:flex; gap:10px; margin-top:22px}
+.whites button{flex:1; height:44px; border:0; border-radius:14px; font:500 15px -apple-system, system-ui; color:#000; cursor:pointer; transition:transform .12s ease-out}
+.whites button:active{transform:scale(.96)}
+
+/* Efeitos (separador 2) */
+.fx{display:grid; grid-template-columns:repeat(auto-fill, minmax(150px,1fr)); gap:14px}
+.fx button{border:0; border-radius:22px; aspect-ratio:1.15; padding:14px; text-align:left; display:flex; flex-direction:column; justify-content:flex-end;
+  font:600 17px -apple-system, system-ui; color:#fff; text-shadow:0 1px 3px rgba(0,0,0,.25); cursor:pointer; position:relative; overflow:hidden;
+  transition:transform .15s ease-out}
+.fx button:active{transform:scale(.96)}
+.fx button small{font-weight:400; font-size:13px; opacity:.85}
+.fx button[aria-pressed="true"]{box-shadow:0 0 0 3px var(--bg), 0 0 0 5.5px var(--ink)}
+.speed{margin-top:18px}
+.speed label{display:flex; justify-content:space-between; font-size:15px; color:var(--ink-2); margin-bottom:8px}
+
+/* Temporizador (separador 3) */
+.list{background:var(--surface); border-radius:var(--r-card); overflow:hidden}
+.row{display:flex; align-items:center; justify-content:space-between; min-height:54px; padding:0 20px; position:relative}
+.row + .row::before{content:""; position:absolute; left:20px; right:0; top:0; height:.5px; background:var(--sep)}
+.row .val{color:var(--ink-2)}
+.switch{width:51px; height:31px; border-radius:16px; background:var(--surface-2); border:0; position:relative; cursor:pointer; transition:background .25s}
+.switch::after{content:""; position:absolute; top:2px; left:2px; width:27px; height:27px; border-radius:50%; background:#fff;
+  box-shadow:0 3px 8px rgba(0,0,0,.15), 0 1px 1px rgba(0,0,0,.16); transition:transform .3s cubic-bezier(.3,1.3,.5,1)}
+.switch[aria-checked="true"]{background:#34c759}
+.switch[aria-checked="true"]::after{transform:translateX(20px)}
+.foot{color:var(--ink-2); font-size:13px; margin:8px 20px 0}
+
+/* Slider genérico (velocidade) */
+.slider{position:relative; height:32px; touch-action:none; cursor:pointer}
+.slider .track{position:absolute; left:0; right:0; top:50%; height:6px; margin-top:-3px; border-radius:3px; background:var(--surface-2); overflow:hidden}
+.slider .track i{position:absolute; inset:0 auto 0 0; background:var(--tint); width:50%}
+.slider .thumb{position:absolute; top:50%; width:28px; height:28px; margin:-14px 0 0 -14px; border-radius:50%; background:#fff;
+  box-shadow:0 3px 8px rgba(0,0,0,.18), 0 0 0 .5px rgba(0,0,0,.08); left:50%; will-change:transform}
+
+/* Barra de separadores flutuante em vidro */
+nav.tabs{position:fixed; z-index:5; left:50%; bottom:calc(14px + env(safe-area-inset-bottom)); transform:translateX(-50%);
+  display:flex; padding:4px; border-radius:var(--r-ctl)}
+nav.tabs button{position:relative; z-index:1; border:0; background:none; width:96px; height:56px; border-radius:var(--r-ctl);
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; color:var(--ink); cursor:pointer;
+  font:600 10.5px -apple-system, system-ui; letter-spacing:.01em; touch-action:manipulation}
+nav.tabs button svg{width:24px; height:24px}
+nav.tabs button[aria-selected="true"]{color:var(--tint)}
+nav.tabs .lens{position:absolute; z-index:0; top:4px; left:4px; width:96px; height:56px; border-radius:var(--r-ctl);
+  background:rgba(120,120,128,.16); box-shadow:inset 0 1px 0 var(--glass-edge); will-change:transform}
+
+section[hidden]{display:none}
+.view{animation:none}
+.badge{font-size:12px; color:var(--ink-2); text-align:center; margin:28px 0 0}
+
+@media (max-width:560px){
+  .grid{grid-template-columns:minmax(0,1fr); grid-template-areas:"wheel" "bright" "favs"; gap:12px}
+  .card{padding:16px}
+  .bright-card{display:grid; grid-template-columns:132px 1fr; grid-template-rows:auto 1fr; align-items:center; column-gap:16px}
+  .bright-card h2{grid-column:1 / -1}
+  .tile{min-height:0; height:230px}
+  .power{margin:0; justify-self:center; width:88px; height:88px}
+  .power svg{width:32px; height:32px}
+}
+@media (prefers-reduced-motion: reduce){ #ambient{transition:none} .switch::after{transition:none} }
+@media (prefers-reduced-transparency: reduce){ .glass{background:var(--surface); -webkit-backdrop-filter:none; backdrop-filter:none} }
+@media (prefers-contrast: more){ .glass{box-shadow:0 0 0 1.5px var(--ink)} }
+</style>
+</head>
+<body>
+<div id="ambient" aria-hidden="true"></div>
+
+<header>
+  <div>
+    <p class="eyebrow" id="eyebrow">Sala</p>
+    <h1 id="title">Luz</h1>
+  </div>
+  <button class="pill glass" id="status" aria-label="Estado da ligação"><span class="dot"></span>Ligada</button>
+</header>
+
+<main>
+  <!-- Separador 1: Luz -->
+  <section id="v-luz" class="view">
+    <div class="grid">
+      <div class="card wheel-card">
+        <h2>Cor</h2>
+        <div class="wheel" id="wheel" role="slider" aria-label="Cor" aria-valuetext="Laranja"><div class="knob" id="knob"></div></div>
+      </div>
+
+      <div class="card bright-card">
+        <h2>Brilho</h2>
+        <div class="tile" id="tile" role="slider" aria-label="Brilho" aria-valuemin="0" aria-valuemax="100" aria-valuenow="80" tabindex="0">
+          <div class="fill" id="fill"></div>
+          <div class="pct" id="pct">80%</div>
+          <svg class="icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="12" r="4.5"/><g stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4"/></g></svg>
+        </div>
+        <button class="power glass" id="power" aria-pressed="true" aria-label="Ligar ou desligar a luz">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 3v8"/><path d="M6.4 6.6a8 8 0 1 0 11.2 0"/></svg>
+        </button>
+      </div>
+
+      <div class="card favs-card">
+        <h2>Favoritas</h2>
+        <div class="favs" id="favs"></div>
+        <div class="whites">
+          <button data-white="255,180,110" style="background:#ffd2a0">Quente</button>
+          <button data-white="255,255,255" style="background:#f4f6ff">Fria</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Separador 2: Efeitos -->
+  <section id="v-fx" class="view" hidden>
+    <div class="card">
+      <h2>Efeitos</h2>
+      <div class="fx" id="fx">
+        <button style="background:linear-gradient(135deg,#ff3b30,#ff9500 35%,#34c759 65%,#007aff)">Arco-íris<small>Transição suave</small></button>
+        <button style="background:linear-gradient(135deg,#ff2d55,#ff9f0a)">Pulsar<small>Vermelho e laranja</small></button>
+        <button style="background:linear-gradient(135deg,#0a84ff,#5ac8fa)">Respirar<small>Azul</small></button>
+        <button style="background:linear-gradient(135deg,#ff9500,#ff3b30)">Vela<small>Tremeluzir quente</small></button>
+        <button style="background:linear-gradient(135deg,#30d158,#64d2ff)">Oceano<small>Verde e azul</small></button>
+        <button style="background:linear-gradient(135deg,#1c1c1e,#ffffff 50%,#1c1c1e)">Estroboscópio<small>Branco rápido</small></button>
+      </div>
+      <div class="speed">
+        <label><span>Velocidade</span><span id="spdv">50%</span></label>
+        <div class="slider" id="spd" role="slider" aria-label="Velocidade"><div class="track"><i></i></div><div class="thumb"></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Separador 3: Temporizador -->
+  <section id="v-timer" class="view" hidden>
+    <div class="list">
+      <div class="row"><span>Desligar daqui a</span><span class="val">30 min</span></div>
+      <div class="row"><span>Acender ao acordar</span><button class="switch" role="switch" aria-checked="false" aria-label="Acender ao acordar"></button></div>
+      <div class="row"><span>Hora</span><span class="val">07:30</span></div>
+      <div class="row"><span>Apagar ao deitar</span><button class="switch" role="switch" aria-checked="true" aria-label="Apagar ao deitar"></button></div>
+    </div>
+    <p class="foot">Os horários ficam guardados na própria fita e funcionam com o iPad desligado.</p>
+  </section>
+
+  <p class="badge">Proposta de design · sem ligação à fita</p>
+</main>
+
+<nav class="tabs glass" role="tablist" aria-label="Secções">
+  <div class="lens" id="lens"></div>
+  <button role="tab" aria-selected="true" data-view="v-luz">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a7 7 0 0 0-4 12.74V17a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-2.26A7 7 0 0 0 12 2Zm-2.5 18a.5.5 0 0 0 0 1h5a.5.5 0 0 0 0-1h-5Zm1 2a.5.5 0 0 0 0 1h3a.5.5 0 0 0 0-1h-3Z"/></svg>Luz</button>
+  <button role="tab" aria-selected="false" data-view="v-fx">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M11 2.5 12.6 7l4.4 1.6-4.4 1.6L11 14.7 9.4 10.2 5 8.6 9.4 7 11 2.5Zm7 10 .9 2.6 2.6.9-2.6.9L18 19.5l-.9-2.6-2.6-.9 2.6-.9.9-2.6ZM6 15l.7 1.8 1.8.7-1.8.7L6 20l-.7-1.8-1.8-.7 1.8-.7L6 15Z"/></svg>Efeitos</button>
+  <button role="tab" aria-selected="false" data-view="v-timer">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2.5M9.5 2.5h5"/></svg>Horários</button>
+</nav>
+
+<script>
+/* ---------- Mola (spring) ao estilo Apple: damping ratio + response ---------- */
+const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+class Spring{
+  constructor(v, {damping=1, response=.4}={}){ this.x=v; this.v=0; this.target=v; this.set(damping,response); this.cb=null; }
+  set(d,r){ this.k=Math.pow(2*Math.PI/r,2); this.c=4*Math.PI*d/r; }
+  to(t, {velocity, damping, response}={}){ if(damping!=null) this.set(damping,response??.4); if(velocity!=null) this.v=velocity; this.target=t;
+    if(reduced){ this.x=t; this.v=0; this.cb&&this.cb(this.x); return; } Spring.run(this); }
+  jump(t){ this.x=this.target=t; this.v=0; this.cb&&this.cb(t); }
+  step(dt){ const a=-this.k*(this.x-this.target)-this.c*this.v; this.v+=a*dt; this.x+=this.v*dt;
+    const done=Math.abs(this.v)<.001&&Math.abs(this.x-this.target)<.0005; if(done){ this.x=this.target; this.v=0; } this.cb&&this.cb(this.x); return done; }
+  static run(s){ Spring.active.add(s); if(!Spring.raf){ let last=performance.now();
+    const loop=now=>{ let dt=Math.min(.032,(now-last)/1000); last=now; const n=Math.ceil(dt/.004);
+      for(const sp of [...Spring.active]){ let done=false; for(let i=0;i<n;i++) done=sp.step(dt/n); if(done) Spring.active.delete(sp); }
+      Spring.raf=Spring.active.size?requestAnimationFrame(loop):0; }; Spring.raf=requestAnimationFrame(loop); } }
+}
+Spring.active=new Set(); Spring.raf=0;
+
+function rubber(over, dim, c=.55){ return (over*dim*c)/(dim+c*Math.abs(over)); }
+function velocityTracker(){ const pts=[]; return { add(v){ const t=performance.now(); pts.push([t,v]); while(pts.length>1&&t-pts[0][0]>100) pts.shift(); },
+  get(){ if(pts.length<2) return 0; const [t0,v0]=pts[0], [t1,v1]=pts[pts.length-1]; return (v1-v0)/Math.max(1,(t1-t0))*1000; }, reset(){ pts.length=0; } }; }
+
+/* ---------- Estado da luz ---------- */
+const root=document.documentElement.style;
+const state={ on:true, h:28, s:.78, b:.8 };
+function hsv(h,s,v=1){ const f=n=>{ const k=(n+h/60)%6; return v-v*s*Math.max(0,Math.min(k,4-k,1)); }; return [f(5),f(3),f(1)].map(x=>Math.round(x*255)); }
+function rgb(){ return hsv(state.h,state.s); }
+function paint(){
+  const [r,g,b]=rgb(); root.setProperty('--light',`${r},${g},${b}`);
+  root.setProperty('--glow', state.on ? (.25+.75*state.b).toFixed(3) : '0');
+  document.getElementById('power').setAttribute('aria-pressed', state.on);
+  document.getElementById('status').lastChild.textContent = state.on ? 'Ligada' : 'Desligada';
+  document.querySelectorAll('.fav[data-c]').forEach(f=>f.setAttribute('aria-current', f.dataset.c===`${r},${g},${b}`));
+  sendToStrip();
+}
+let sendT=0; function sendToStrip(){ clearTimeout(sendT); sendT=setTimeout(()=>{/* na app final: envia cor/brilho por Bluetooth */},40); }
+
+/* ---------- Roda de cor: arrasto 1:1, molas X e Y independentes ---------- */
+const wheel=document.getElementById('wheel'), knob=document.getElementById('knob');
+const kx=new Spring(0,{damping:1,response:.35}), ky=new Spring(0,{damping:1,response:.35});
+const drawKnob=()=>{ knob.style.transform=`translate3d(${kx.x}px,${ky.x}px,0)`; };
+kx.cb=drawKnob; ky.cb=drawKnob;
+function wheelGeom(){ const r=wheel.getBoundingClientRect(); return {cx:r.width/2, cy:r.height/2, R:r.width/2, left:r.left, top:r.top}; }
+function posFor(h,s){ const g=wheelGeom(), a=h*Math.PI/180; return [g.cx+Math.cos(a)*s*g.R, g.cy+Math.sin(a)*s*g.R]; }
+function placeKnob(animate, v){ const [x,y]=posFor(state.h,state.s); if(animate){ kx.to(x,v); ky.to(y,v); } else { kx.jump(x); ky.jump(y); } }
+function fromPoint(px,py){ const g=wheelGeom(); let dx=px-g.left-g.cx, dy=py-g.top-g.cy; const d=Math.hypot(dx,dy);
+  state.h=(Math.atan2(dy,dx)*180/Math.PI+360)%360; state.s=Math.min(1,d/g.R); }
+let wheelDrag=null;
+wheel.addEventListener('pointerdown',e=>{ wheel.setPointerCapture(e.pointerId); wheelDrag={moved:false};
+  fromPoint(e.clientX,e.clientY); if(!state.on) state.on=true; placeKnob(true); paint(); });          // resposta imediata no toque
+wheel.addEventListener('pointermove',e=>{ if(!wheelDrag) return; wheelDrag.moved=true; fromPoint(e.clientX,e.clientY);
+  const [x,y]=posFor(state.h,state.s); kx.to(x,{damping:1,response:.12}); ky.to(y,{damping:1,response:.12}); paint(); });
+const endWheel=()=>{ wheelDrag=null; kx.set(1,.35); ky.set(1,.35); };
+wheel.addEventListener('pointerup',endWheel); wheel.addEventListener('pointercancel',endWheel);
+addEventListener('resize',()=>placeKnob(false));
+
+/* ---------- Brilho: azulejo com arrasto 1:1, elástico nas pontas, mola com velocidade ---------- */
+const tile=document.getElementById('tile'), fill=document.getElementById('fill'), pct=document.getElementById('pct');
+const shown=new Spring(state.b,{damping:1,response:.3});      // valor apresentado (pode passar de 0..1 com elástico)
+shown.cb=x=>{ const h=tile.clientHeight, over=x>1?(x-1):x<0?x:0;
+  const base=Math.max(0,Math.min(1,x)); fill.style.transform=`scaleY(${state.on?base:0})`;
+  tile.style.transform = over ? `scale(${1+Math.abs(over)*.18},${1+Math.abs(over)*.35})` : 'none';
+  const p=Math.round((state.on?base:0)*100); pct.textContent=state.on? p+'%' : 'Desligada'; tile.setAttribute('aria-valuenow',p); };
+let td=null; const vt=velocityTracker();
+tile.addEventListener('pointerdown',e=>{ tile.setPointerCapture(e.pointerId);
+  td={y:e.clientY, startB:state.on?state.b:0, moved:false, h:tile.clientHeight}; vt.reset(); vt.add(state.b);
+  tile.style.cursor='grabbing'; });
+tile.addEventListener('pointermove',e=>{ if(!td) return; const dy=td.y-e.clientY;
+  if(!td.moved && Math.abs(dy)<6) return;                         // pequena histerese antes de arrastar
+  if(!td.moved){ td.moved=true; if(!state.on){ state.on=true; } td.y=e.clientY; return; }
+  let raw=td.startB+dy/td.h; let disp=raw;
+  if(raw>1) disp=1+rubber(raw-1,1); else if(raw<0) disp=rubber(raw,1);
+  state.b=Math.max(.01,Math.min(1,raw)); vt.add(disp); shown.jump(disp); paint(); });
+const endTile=()=>{ if(!td) return; tile.style.cursor='';
+  if(!td.moved){ state.on=!state.on; paint(); shown.to(state.b,{velocity:0,damping:1,response:.3}); shown.cb(shown.x); }
+  else shown.to(state.b,{velocity:vt.get(),damping:.8,response:.35});   // devolve com a velocidade do dedo
+  td=null; };
+tile.addEventListener('pointerup',endTile); tile.addEventListener('pointercancel',endTile);
+tile.addEventListener('keydown',e=>{ const d={ArrowUp:.05,ArrowRight:.05,ArrowDown:-.05,ArrowLeft:-.05}[e.key]; if(d==null) return;
+  e.preventDefault(); state.on=true; state.b=Math.max(.01,Math.min(1,state.b+d)); shown.to(state.b); paint(); });
+
+/* ---------- Botão de ligar ---------- */
+document.getElementById('power').addEventListener('click',()=>{ state.on=!state.on; paint(); shown.cb(shown.x); });
+
+/* ---------- Favoritas ---------- */
+const favs=[[0,1],[28,.78],[50,.9],[130,.85],[200,.8],[230,1],[300,.7]];
+const favBox=document.getElementById('favs');
+function renderFavs(){ favBox.innerHTML='';
+  favs.forEach(([h,s])=>{ const [r,g,b]=hsv(h,s); const el=document.createElement('button'); el.className='fav';
+    el.style.background=`rgb(${r},${g},${b})`; el.dataset.c=`${r},${g},${b}`; el.setAttribute('aria-label','Cor favorita');
+    el.onclick=()=>{ state.h=h; state.s=s; state.on=true; placeKnob(true,{damping:1,response:.4}); paint(); shown.cb(shown.x); };
+    favBox.appendChild(el); });
+  const add=document.createElement('button'); add.className='fav add'; add.setAttribute('aria-label','Guardar cor atual');
+  add.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>';
+  add.onclick=()=>{ favs.push([state.h,state.s]); renderFavs(); paint(); };
+  favBox.appendChild(add); }
+renderFavs();
+document.querySelectorAll('[data-white]').forEach(b=>b.onclick=()=>{
+  const [r,g,bl]=b.dataset.white.split(',').map(Number); // converte para h/s aproximado
+  const mx=Math.max(r,g,bl), mn=Math.min(r,g,bl), s=mx?(mx-mn)/mx:0; let h=0;
+  if(mx!==mn){ if(mx===r) h=60*(((g-bl)/(mx-mn))%6); else if(mx===g) h=60*((bl-r)/(mx-mn)+2); else h=60*((r-g)/(mx-mn)+4); }
+  state.h=(h+360)%360; state.s=s; state.on=true; placeKnob(true); paint(); shown.cb(shown.x); });
+
+/* ---------- Efeitos ---------- */
+document.querySelectorAll('#fx button').forEach(b=>{ b.setAttribute('aria-pressed','false');
+  b.onclick=()=>document.querySelectorAll('#fx button').forEach(x=>x.setAttribute('aria-pressed', x===b && x.getAttribute('aria-pressed')!=='true')); });
+(function slider(){ const el=document.getElementById('spd'), th=el.querySelector('.thumb'), bar=el.querySelector('i'), out=document.getElementById('spdv');
+  const sp=new Spring(.5,{damping:1,response:.25}); sp.cb=x=>{ th.style.left=(x*100)+'%'; bar.style.width=(x*100)+'%'; };
+  let on=false; const set=e=>{ const r=el.getBoundingClientRect(); const v=Math.max(0,Math.min(1,(e.clientX-r.left)/r.width)); sp.to(v,{damping:1,response:on?.08:.25}); out.textContent=Math.round(v*100)+'%'; };
+  el.addEventListener('pointerdown',e=>{ el.setPointerCapture(e.pointerId); set(e); on=true; });
+  el.addEventListener('pointermove',e=>{ if(on) set(e); });
+  el.addEventListener('pointerup',()=>on=false); el.addEventListener('pointercancel',()=>on=false); })();
+
+/* ---------- Horários: interruptores ---------- */
+document.querySelectorAll('.switch').forEach(s=>s.onclick=()=>s.setAttribute('aria-checked', s.getAttribute('aria-checked')!=='true'));
+
+/* ---------- Separadores: lente de vidro que desliza com mola ---------- */
+const lens=document.getElementById('lens'), tabs=[...document.querySelectorAll('nav.tabs button')];
+const lx=new Spring(0,{damping:.8,response:.35}); const ls=new Spring(1,{damping:.6,response:.3});
+const drawLens=()=>{ lens.style.transform=`translateX(${lx.x}px) scale(${ls.x})`; }; lx.cb=drawLens; ls.cb=drawLens;
+tabs.forEach((t,i)=>t.addEventListener('pointerdown',()=>{ ls.to(1.12,{damping:.6,response:.2}); }));
+tabs.forEach((t,i)=>t.addEventListener('click',()=>{
+  tabs.forEach(x=>x.setAttribute('aria-selected', x===t));
+  document.querySelectorAll('section.view').forEach(v=>v.hidden = v.id!==t.dataset.view);
+  lx.to(i*96,{damping:.8,response:.35}); ls.to(1,{damping:.6,response:.35});
+  document.getElementById('title').textContent = t.textContent.trim()==='Luz'?'Luz':t.textContent.trim();
+  if(t.dataset.view==='v-luz') requestAnimationFrame(()=>placeKnob(false));
+}));
+
+/* ---------- Início ---------- */
+paint(); placeKnob(false); shown.jump(state.b);
+</script>
+</body>
+</html>

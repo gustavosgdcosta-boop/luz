@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="pt-PT">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Luz — teste</title>
+<style>
+  :root{ --bg:#f2f2f7; --card:#fff; --ink:#000; --muted:#8a8a8e; --tint:#007aff; --ok:#34c759; --bad:#ff3b30; }
+  @media (prefers-color-scheme: dark){ :root{ --bg:#000; --card:#1c1c1e; --ink:#fff; --muted:#8d8d93; --tint:#0a84ff; --ok:#30d158; --bad:#ff453a; } }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent}
+  html,body{background:var(--bg)}
+  body{margin:0; font:17px/1.35 -apple-system, system-ui, sans-serif; color:var(--ink);
+       padding:max(20px, env(safe-area-inset-top)) 16px max(32px, env(safe-area-inset-bottom))}
+  main{max-width:520px; margin:0 auto}
+  h1{font-size:34px; font-weight:700; margin:16px 4px 4px}
+  .sub{color:var(--muted); margin:0 4px 20px; font-size:15px}
+  #state{background:var(--card); border-radius:14px; padding:14px 16px; font-weight:600}
+  #state.ok{color:var(--ok)} #state.bad{color:var(--bad)}
+  button{font:inherit; border:0; border-radius:14px; min-height:54px; width:100%; font-weight:600; cursor:pointer;
+         touch-action:manipulation; transition:transform .1s ease-out}
+  button:active{transform:scale(.97)}
+  #methods button{background:var(--tint); color:#fff; margin-top:10px}
+  .grid{display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-top:12px}
+  .grid button{background:var(--card); color:var(--ink)}
+  .c{color:#fff}
+  pre{background:var(--card); border-radius:14px; margin:20px 0 0; padding:12px 16px; font:12px/1.55 ui-monospace, Menlo, monospace;
+      white-space:pre-wrap; word-break:break-word; color:var(--muted); min-height:80px}
+</style>
+</head>
+<body>
+<main>
+  <h1>Luz</h1>
+  <p class="sub">Teste v5 · fecha a Lotus Lamp X e o nRF Connect antes de ligar.</p>
+
+  <div id="state">Desligada</div>
+  <div id="methods"></div>
+
+  <div class="grid">
+    <button data-hex="7e0004f00001ff00ef">Ligar</button>
+    <button data-hex="7e0004000000ff00ef">Desligar</button>
+    <button class="c" style="background:#ff3b30" data-hex="7e000503ff000000ef">Vermelho</button>
+    <button class="c" style="background:#34c759" data-hex="7e00050300ff0000ef">Verde</button>
+    <button class="c" style="background:#007aff" data-hex="7e0005030000ff00ef">Azul</button>
+    <button data-hex="7e000503ffffff00ef">Branco</button>
+  </div>
+
+  <pre id="log"></pre>
+</main>
+
+<script>
+var SERVICE = '0000fff0-0000-1000-8000-00805f9b34fb';
+var CHAR    = '0000fff3-0000-1000-8000-00805f9b34fb';
+var ch = null;
+
+var logEl = document.getElementById('log');
+var stateEl = document.getElementById('state');
+
+function describe(e){
+  if (e === undefined) return 'undefined';
+  if (e === null) return 'null';
+  if (typeof e === 'string') return e;
+  var parts = [];
+  if (e.name) parts.push(e.name);
+  if (e.message) parts.push(e.message);
+  if (!parts.length) { try { parts.push(JSON.stringify(e)); } catch(_) {} parts.push(String(e)); }
+  return parts.join(': ');
+}
+function log(m){ logEl.textContent += new Date().toLocaleTimeString('pt-PT') + '  ' + m + '\n'; }
+function state(t, cls){ stateEl.textContent = t; stateEl.className = cls || ''; }
+
+log('Teste v5');
+log('Bluetooth no navegador: ' + (navigator.bluetooth ? 'sim' : 'NÃO — abre no Bluefy'));
+
+var METHODS = [
+  ['1 · Pelo nome (ELK)',          { filters:[{namePrefix:'ELK'}], optionalServices:[SERVICE] }],
+  ['2 · Pelo nome exato',          { filters:[{name:'ELK-BLEDOM01'}], optionalServices:[SERVICE] }],
+  ['3 · Pelo serviço FFF0',        { filters:[{services:[SERVICE]}] }],
+  ['4 · Pelo nome, sem extras',    { filters:[{namePrefix:'ELK'}] }],
+  ['5 · Todos os aparelhos',       { acceptAllDevices:true }]
+];
+var box = document.getElementById('methods');
+METHODS.forEach(function(m){
+  var btn = document.createElement('button');
+  btn.textContent = 'Ligar: ' + m[0];
+  btn.addEventListener('click', function(){ connect(m[0], m[1]); });
+  box.appendChild(btn);
+});
+
+function connect(label, opts){
+  if (!navigator.bluetooth) { state('Este navegador não tem Bluetooth', 'bad'); return; }
+  state('Passo 1/4 · a abrir a lista…');
+  log('== Método ' + label);
+  log('1. A pedir a lista de aparelhos');
+  var p;
+  try { p = navigator.bluetooth.requestDevice(opts); }
+  catch(e){ state('Falhou no passo 1/4', 'bad'); log('   ERRO imediato: ' + describe(e)); return; }
+  p.then(function(device){
+      log('   escolhido: ' + device.name);
+      state('Passo 2/4 · a ligar…');
+      log('2. A ligar');
+      try { device.addEventListener('gattserverdisconnected', function(){ ch = null; state('Desligada'); log('   ligação perdida'); }); } catch(_){}
+      return device.gatt.connect();
+    })
+    .then(function(server){
+      state('Passo 3/4 · a abrir o serviço FFF0…');
+      log('3. A abrir o serviço FFF0');
+      return server.getPrimaryService(SERVICE);
+    })
+    .then(function(service){
+      state('Passo 4/4 · a abrir o canal FFF3…');
+      log('4. A abrir o canal FFF3');
+      return service.getCharacteristic(CHAR);
+    })
+    .then(function(c){
+      ch = c;
+      state('Ligada ✓ (método ' + label.split(' ')[0] + ')', 'ok');
+      log('   pronto');
+    })
+    .catch(function(e){
+      state('Falhou no ' + stateEl.textContent.split(' ·')[0].toLowerCase() + ' (método ' + label.split(' ')[0] + ')', 'bad');
+      log('   ERRO: ' + describe(e));
+    });
+}
+
+function hexToBytes(h){ var a = new Uint8Array(h.length/2); for (var i=0;i<a.length;i++) a[i] = parseInt(h.substr(i*2,2),16); return a; }
+
+Array.prototype.forEach.call(document.querySelectorAll('[data-hex]'), function(b){
+  b.addEventListener('click', function(){
+    if (!ch) { log('Primeiro liga à fita'); return; }
+    var bytes = hexToBytes(b.getAttribute('data-hex'));
+    ch.writeValue(bytes)
+      .then(function(){ log('enviado ' + b.textContent); })
+      .catch(function(e){ log('ERRO ao enviar: ' + describe(e)); });
+  });
+});
+</script>
+</body>
+</html>

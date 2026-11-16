@@ -2,137 +2,836 @@
 <html lang="pt-PT">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Luz — teste</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#000000">
+<title>Luz</title>
+<meta name="description" content="Controlo da fita de LEDs ELK-BLEDOM">
 <style>
-  :root{ --bg:#f2f2f7; --card:#fff; --ink:#000; --muted:#8a8a8e; --tint:#007aff; --ok:#34c759; --bad:#ff3b30; }
-  @media (prefers-color-scheme: dark){ :root{ --bg:#000; --card:#1c1c1e; --ink:#fff; --muted:#8d8d93; --tint:#0a84ff; --ok:#30d158; --bad:#ff453a; } }
-  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent}
-  html,body{background:var(--bg)}
-  body{margin:0; font:17px/1.35 -apple-system, system-ui, sans-serif; color:var(--ink);
-       padding:max(20px, env(safe-area-inset-top)) 16px max(32px, env(safe-area-inset-bottom))}
-  main{max-width:520px; margin:0 auto}
-  h1{font-size:34px; font-weight:700; margin:16px 4px 4px}
-  .sub{color:var(--muted); margin:0 4px 20px; font-size:15px}
-  #state{background:var(--card); border-radius:14px; padding:14px 16px; font-weight:600}
-  #state.ok{color:var(--ok)} #state.bad{color:var(--bad)}
-  button{font:inherit; border:0; border-radius:14px; min-height:54px; width:100%; font-weight:600; cursor:pointer;
-         touch-action:manipulation; transition:transform .1s ease-out}
-  button:active{transform:scale(.97)}
-  #methods button{background:var(--tint); color:#fff; margin-top:10px}
-  .grid{display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-top:12px}
-  .grid button{background:var(--card); color:var(--ink)}
-  .c{color:#fff}
-  pre{background:var(--card); border-radius:14px; margin:20px 0 0; padding:12px 16px; font:12px/1.55 ui-monospace, Menlo, monospace;
-      white-space:pre-wrap; word-break:break-word; color:var(--muted); min-height:80px}
+/* ============================================================
+   Tokens — cores do sistema iOS, laranja como cor da app
+   ============================================================ */
+:root{
+  --bg:#ffffff; --ink:#000; --ink-2:rgba(60,60,67,.6); --ink-3:rgba(60,60,67,.3);
+  --fill:rgba(120,120,128,.16); --fill-2:rgba(120,120,128,.12); --sep:rgba(60,60,67,.18);
+  --solid:#fff; --seg-sel:#fff; --menu-bg:rgba(250,250,252,.9);
+  --tint:255,149,0;                 /* laranja do sistema (claro) */
+  --green:52,199,89;
+  /* vidro: iOS 27 — menos transparente, contorno mais definido */
+  --g-bg:rgba(255,255,255,.66); --g-bg-strong:rgba(255,255,255,.8);
+  --g-rim-a:rgba(255,255,255,.95); --g-rim-b:rgba(255,255,255,.25); --g-line:rgba(0,0,0,.07);
+  --g-shadow:0 10px 32px rgba(0,0,0,.08), 0 2px 6px rgba(0,0,0,.04);
+  --g-spec:rgba(255,255,255,.55);
+  --light:255,140,60; --glow:.85;
+  --pad:20px; --gap:14px; --r:32px;
+  --font:-apple-system, "SF Pro Text", system-ui, sans-serif;
+  --display:-apple-system, "SF Pro Display", system-ui, sans-serif;
+  --rounded:ui-rounded, "SF Pro Rounded", -apple-system, system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#000; --ink:#fff; --ink-2:rgba(235,235,245,.6); --ink-3:rgba(235,235,245,.3);
+    --fill:rgba(120,120,128,.32); --fill-2:rgba(120,120,128,.24); --sep:rgba(84,84,88,.6);
+    --solid:#1c1c1e; --seg-sel:#636366; --menu-bg:rgba(38,38,42,.9);
+    --tint:255,159,10;
+    --green:48,209,88;
+    --g-bg:rgba(44,44,48,.55); --g-bg-strong:rgba(58,58,62,.72);
+    --g-rim-a:rgba(255,255,255,.42); --g-rim-b:rgba(255,255,255,.06); --g-line:rgba(0,0,0,.5);
+    --g-shadow:0 10px 34px rgba(0,0,0,.45), 0 1px 2px rgba(0,0,0,.35);
+    --g-spec:rgba(255,255,255,.16);
+  }
+}
+
+*{box-sizing:border-box; -webkit-tap-highlight-color:transparent; -webkit-user-select:none; user-select:none; -webkit-touch-callout:none}
+html,body{height:100%; overflow:hidden; overscroll-behavior:none}
+html{background:var(--bg)}
+body{margin:0; position:fixed; inset:0; background:var(--bg); color:var(--ink); font:17px/1.29 var(--font); letter-spacing:-.022em;
+  -webkit-font-smoothing:antialiased; display:flex; flex-direction:column;
+  padding:env(safe-area-inset-top) max(var(--pad), env(safe-area-inset-right)) calc(96px + env(safe-area-inset-bottom)) max(var(--pad), env(safe-area-inset-left))}
+button{font:inherit; letter-spacing:inherit; color:inherit; border:0; background:none; padding:0; cursor:pointer; touch-action:manipulation}
+
+/* ============================================================
+   Brilho ambiente — a cor escolhida acende o ecrã
+   ============================================================ */
+#ambient{position:fixed; inset:-30%; z-index:0; pointer-events:none; opacity:var(--glow); transition:opacity .6s ease;
+  background:
+    radial-gradient(42% 36% at 30% 22%, rgba(var(--light),.95), transparent 70%),
+    radial-gradient(38% 34% at 78% 40%, rgba(var(--light),.55), transparent 72%),
+    radial-gradient(60% 34% at 50% 96%, rgba(var(--light),.38), transparent 72%);
+  filter:blur(48px) saturate(1.1)}
+@media (prefers-color-scheme: light){ #ambient{opacity:calc(var(--glow) * .6)} }
+
+/* ============================================================
+   Liquid Glass (aproximação web): corpo translúcido, aro de luz,
+   reflexo especular em cima. Só em controlos e navegação.
+   ============================================================ */
+.glass{position:relative; isolation:isolate; background:var(--g-bg);
+  -webkit-backdrop-filter:blur(26px) saturate(190%); backdrop-filter:blur(26px) saturate(190%);
+  box-shadow:var(--g-shadow), 0 0 0 .5px var(--g-line)}
+.glass::before{content:""; position:absolute; inset:0; border-radius:inherit; pointer-events:none; z-index:-1;
+  background:linear-gradient(180deg, var(--g-spec), transparent 46%)}
+.glass::after{content:""; position:absolute; inset:0; border-radius:inherit; pointer-events:none; padding:1px;
+  background:linear-gradient(155deg, var(--g-rim-a), var(--g-rim-b) 32%, transparent 55%, var(--g-rim-b) 80%, var(--g-rim-a));
+  -webkit-mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite:xor;
+          mask:linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0)}
+.glass.tinted{background:rgba(var(--tint),.92); color:#fff}
+.glass.tinted::before{background:linear-gradient(180deg, rgba(255,255,255,.42), transparent 55%)}
+
+/* ============================================================
+   Barra superior: título grande + botões de vidro
+   ============================================================ */
+header{position:relative; z-index:6; flex:none; display:flex; align-items:center; justify-content:space-between; gap:12px;
+  height:64px; margin:8px 0 10px; max-width:1180px; width:100%; margin-inline:auto}
+h1{margin:0; font:700 34px/1.1 var(--display); letter-spacing:.011em; white-space:nowrap}
+.actions{display:flex; gap:10px}
+.circle{width:44px; height:44px; border-radius:50%; display:grid; place-items:center; transition:transform .25s cubic-bezier(.3,1.4,.5,1)}
+.circle:active{transform:scale(.9)}
+.circle svg{width:21px; height:21px}
+.circle .badge{position:absolute; top:7px; right:7px; width:9px; height:9px; border-radius:50%; background:rgb(var(--green)); box-shadow:0 0 0 2px var(--bg)}
+
+/* Menu de vidro, ancorado ao botão que o abre */
+.menu{position:fixed; z-index:20; width:270px; border-radius:26px; padding:8px; transform-origin:100% 0; opacity:0; pointer-events:none;
+  background:var(--menu-bg)}
+.menu.open{pointer-events:auto}
+.menu .mi{display:flex; align-items:center; gap:12px; width:100%; min-height:48px; padding:0 14px; border-radius:18px; text-align:left; font-size:17px}
+.menu .mi:active{background:var(--fill)}
+.menu .mi svg{width:20px; height:20px; flex:none; color:var(--ink-2)}
+.menu .mi small{display:block; font-size:13px; color:var(--ink-2); letter-spacing:-.005em}
+.menu .mi.danger{color:#ff453a} .menu .mi.danger svg{color:#ff453a}
+.menu hr{border:0; height:.5px; background:var(--sep); margin:6px 14px}
+.scrim{position:fixed; inset:0; z-index:19; display:none}
+.scrim.on{display:block}
+
+/* ============================================================
+   Separadores: barra flutuante em baixo (iPhone), no topo (iPad)
+   ============================================================ */
+nav.tabs{position:fixed; z-index:7; left:max(var(--pad), env(safe-area-inset-left)); right:max(var(--pad), env(safe-area-inset-right));
+  bottom:calc(12px + env(safe-area-inset-bottom)); height:64px; border-radius:32px; padding:4px; display:grid; grid-auto-flow:column; grid-auto-columns:1fr}
+nav.tabs button{position:relative; z-index:1; border-radius:28px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px;
+  font:600 10px/1 var(--font); letter-spacing:.01em; color:var(--ink); transition:color .2s}
+nav.tabs button svg{width:26px; height:26px}
+nav.tabs button[aria-selected="true"]{color:rgb(var(--tint))}
+nav.tabs .lens{position:absolute; z-index:0; top:4px; bottom:4px; left:0; border-radius:28px; background:var(--fill-2);
+  box-shadow:inset 0 .5px 0 rgba(255,255,255,.35); will-change:transform,width}
+
+/* ============================================================
+   Conteúdo — ocupa exatamente o espaço que sobra (sem scroll)
+   ============================================================ */
+main{position:relative; z-index:1; flex:1; min-height:0; width:100%; max-width:1180px; margin:0 auto}
+.view{height:100%; min-height:0; display:grid; gap:var(--gap)}
+.view[hidden]{display:none}
+.module{border-radius:var(--r); padding:var(--pad); min-width:0; min-height:0; display:flex; flex-direction:column}
+.mh{flex:none; display:flex; align-items:baseline; justify-content:space-between; margin:0 0 14px}
+.mh h2{margin:0; font:600 20px/1.2 var(--display); letter-spacing:-.01em}
+.mh .aside{font-size:15px; color:var(--ink-2)}
+
+/* ---------- Luz ---------- */
+#v-luz{grid-template-columns:minmax(0,1fr); grid-template-rows:minmax(0,1.12fr) minmax(0,1fr); grid-template-areas:"wheel" "bright"}
+#v-luz .colors{display:none}
+.wheel-zone{grid-area:wheel; container-type:size; display:grid; place-items:center; min-height:0}
+.wheel{position:relative; width:calc(min(100cqw,100cqh) - 8px); aspect-ratio:1; border-radius:50%; touch-action:none;
+  background:radial-gradient(circle closest-side, #fff 0%, rgba(255,255,255,.85) 12%, rgba(255,255,255,0) 100%),
+             conic-gradient(from 90deg, #ff3b30, #ff9500, #ffcc00, #34c759, #00c7be, #32ade6, #007aff, #5856d6, #af52de, #ff2d55, #ff3b30);
+  box-shadow:0 0 0 .5px rgba(255,255,255,.18), 0 18px 60px rgba(var(--light),.35)}
+.wheel::after{content:""; position:absolute; inset:0; border-radius:50%; pointer-events:none;
+  background:radial-gradient(circle at 50% 30%, rgba(255,255,255,.18), transparent 55%)}
+.knob{position:absolute; left:0; top:0; z-index:2; width:46px; height:46px; margin:-23px 0 0 -23px; border-radius:50%; pointer-events:none;
+  background:rgb(var(--light)); box-shadow:0 0 0 4px #fff, 0 6px 18px rgba(0,0,0,.32); will-change:transform}
+
+.bright{grid-area:bright; display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); grid-template-rows:minmax(0,1fr); gap:var(--gap); min-height:0}
+/* Mosaico do brilho: o próprio mosaico é o slider */
+.capsule{position:relative; border-radius:var(--r); overflow:hidden; touch-action:none; transform-origin:50% 100%; will-change:transform; min-height:0; cursor:grab}
+.capsule .fill{position:absolute; inset:0; z-index:0; background:linear-gradient(180deg, rgba(255,255,255,.24), transparent 26%), rgb(var(--tint)); transform-origin:50% 100%; will-change:transform}
+.capsule .sun{position:absolute; z-index:1; top:20px; left:20px; width:28px; height:28px; color:var(--ink-2); pointer-events:none; will-change:transform; transition:color .2s}
+.capsule.full .sun{color:#fff}
+.cap-info{position:absolute; z-index:1; left:20px; right:16px; bottom:18px; color:#fff; pointer-events:none; transition:color .2s}
+.capsule.low .cap-info{color:var(--ink)}
+.readout{font:600 clamp(40px, 8.5vmin, 58px)/1 var(--rounded); letter-spacing:-.02em; font-variant-numeric:tabular-nums}
+.readout span{font-size:.5em; margin-left:1px; opacity:.72}
+.cap-label{font:600 15px/1.2 var(--font); margin-top:4px; opacity:.85}
+/* Mosaico de ligar/desligar */
+.power{position:relative; border-radius:var(--r); padding:20px; display:flex; flex-direction:column; justify-content:space-between; align-items:flex-start; text-align:left; min-height:0;
+  transition:transform .3s cubic-bezier(.3,1.4,.5,1), background-color .3s, color .3s, box-shadow .3s}
+.power:active{transform:scale(.96)}
+.p-ico{width:52px; height:52px; border-radius:50%; display:grid; place-items:center; background:var(--fill); color:var(--ink); transition:background-color .3s, color .3s}
+.p-ico svg{width:24px; height:24px}
+.p-txt b{display:block; font:600 20px/1.2 var(--display); letter-spacing:-.01em}
+.p-txt{min-width:0; max-width:100%}
+.p-txt small{display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; font-size:13px; color:var(--ink-2); margin-top:3px; transition:color .3s}
+.power[aria-pressed="true"]{background:rgba(var(--tint),.96); color:#fff; box-shadow:0 14px 36px rgba(var(--tint),.38), 0 0 0 .5px rgba(0,0,0,.08)}
+.power[aria-pressed="true"]::before{background:linear-gradient(180deg, rgba(255,255,255,.42), transparent 55%)}
+.power[aria-pressed="true"] .p-ico{background:#fff; color:rgb(var(--tint))}
+.power[aria-pressed="true"] small{color:rgba(255,255,255,.82)}
+
+/* ---------- Cores (favoritas + brancos) ---------- */
+.colors{grid-area:colors; display:flex; flex-direction:column; gap:var(--gap); min-height:0}
+.colors .favs-m{flex:1.25}
+.colors .whites-m{flex:1}
+.favs{flex:1; min-height:0; display:grid; grid-template-columns:repeat(4, 1fr); align-content:space-evenly; justify-items:center; row-gap:12px; column-gap:10px}
+.fav{position:relative; width:min(64px, 100%); aspect-ratio:1; border-radius:50%; transition:transform .25s cubic-bezier(.3,1.4,.5,1);
+  box-shadow:inset 0 0 0 .5px rgba(0,0,0,.15), inset 0 6px 10px rgba(255,255,255,.18)}
+.fav:active{transform:scale(.88)}
+.fav[aria-current="true"]{box-shadow:0 0 0 3px var(--solid), 0 0 0 5.5px var(--ink), inset 0 6px 10px rgba(255,255,255,.18)}
+.fav.add{background:var(--fill); color:var(--ink-2); display:grid; place-items:center; box-shadow:none}
+.fav.add svg{width:24px; height:24px}
+.whites{flex:1; min-height:0; display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px}
+.white{position:relative; border-radius:calc(var(--r) - var(--pad) + 4px); padding:14px; display:flex; flex-direction:column; justify-content:space-between; align-items:flex-start;
+  color:#1c1c1e; text-align:left; transition:transform .25s cubic-bezier(.3,1.4,.5,1); box-shadow:inset 0 0 0 .5px rgba(0,0,0,.08), inset 0 10px 20px rgba(255,255,255,.35)}
+.white:active{transform:scale(.95)}
+.white b{display:block; font:600 17px/1.2 var(--font)}
+.white small{display:block; margin-top:2px; font-size:13px; opacity:.6; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:100%}
+.white > span:last-child{min-width:0; max-width:100%}
+.white .top{display:flex; justify-content:space-between; align-items:flex-start; width:100%}
+.white .k{white-space:nowrap; font:600 13px/1 var(--rounded); letter-spacing:0; opacity:.55; font-variant-numeric:tabular-nums; padding-top:4px}
+.white .chk{width:24px; height:24px; border-radius:50%; background:rgba(0,0,0,.08); display:grid; place-items:center; opacity:0; transform:scale(.6); transition:opacity .2s, transform .3s cubic-bezier(.3,1.5,.5,1)}
+.white .chk svg{width:14px; height:14px}
+.white[aria-pressed="true"] .chk{opacity:1; transform:none; background:#1c1c1e; color:#fff}
+
+/* ---------- Efeitos ---------- */
+#v-fx{grid-template-rows:minmax(0,1fr) auto}
+.fxgrid{display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); grid-auto-rows:minmax(0,1fr); gap:var(--gap); min-height:0}
+.fxc{position:relative; border-radius:var(--r); padding:18px; text-align:left; display:flex; flex-direction:column; justify-content:space-between; min-height:0;
+  transition:transform .25s cubic-bezier(.3,1.4,.5,1)}
+.fxc:active{transform:scale(.96)}
+.fxc{overflow:hidden; isolation:isolate}
+.fxc .pv{position:absolute; inset:-20%; z-index:-1; pointer-events:none; filter:blur(22px) saturate(1.2); opacity:.6;
+  -webkit-mask:linear-gradient(#000 35%, transparent 78%); mask:linear-gradient(#000 35%, transparent 78%); transition:opacity .4s}
+.fxc[aria-pressed="true"] .pv{opacity:.95; animation:drift 6s ease-in-out infinite alternate}
+@keyframes drift{from{transform:translate3d(-4%,-2%,0) scale(1)} to{transform:translate3d(4%,3%,0) scale(1.08)}}
+.fxc .dots{display:flex; gap:6px; position:relative}
+.fxc .dots i{width:14px; height:14px; border-radius:50%; background:var(--c); box-shadow:0 0 0 .5px rgba(0,0,0,.18), 0 0 12px var(--c)}
+.fxc b{display:block; font:600 17px/1.2 var(--font)}
+.fxc small{display:block; font-size:13px; color:var(--ink-2); margin-top:2px}
+.fxc .chk{position:absolute; top:16px; right:16px; width:26px; height:26px; border-radius:50%; background:rgb(var(--tint)); color:#fff; display:grid; place-items:center;
+  opacity:0; transform:scale(.5); transition:opacity .2s, transform .35s cubic-bezier(.3,1.6,.5,1)}
+.fxc .chk svg{width:15px; height:15px}
+.fxc[aria-pressed="true"] .chk{opacity:1; transform:none}
+.fxc[aria-pressed="true"] .dots i{animation:pulse 1.6s ease-in-out infinite; animation-delay:calc(var(--i) * .16s)}
+@keyframes pulse{0%,100%{transform:scale(1); opacity:1} 50%{transform:scale(.55); opacity:.45}}
+.speed-m{padding:16px var(--pad) 18px}
+
+/* Slider iOS 26/27: botão em cápsula que vira lente ao arrastar */
+.slider{position:relative; height:36px; touch-action:none}
+.slider .track{position:absolute; left:0; right:0; top:50%; height:6px; margin-top:-3px; border-radius:3px; background:var(--fill)}
+.slider .track i{position:absolute; inset:0 auto 0 0; border-radius:3px; background:rgb(var(--tint))}
+.slider .thumb{position:absolute; top:50%; left:0; width:38px; height:24px; margin:-12px 0 0 -19px; border-radius:12px; background:#fff;
+  box-shadow:0 3px 10px rgba(0,0,0,.2), 0 0 0 .5px rgba(0,0,0,.06); transition:transform .3s cubic-bezier(.3,1.5,.5,1), background-color .2s}
+.slider.active .thumb{transform:scale(1.45, 1.6); background:rgba(255,255,255,.35); -webkit-backdrop-filter:blur(2px) saturate(180%); backdrop-filter:blur(2px) saturate(180%);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.8), inset 0 1px 3px rgba(255,255,255,.7), 0 6px 18px rgba(0,0,0,.18)}
+
+/* ---------- Horários ---------- */
+#v-timer{grid-template-rows:minmax(0,1fr) auto}
+.sleep{justify-content:space-between}
+.dial{flex:1; min-height:0; container-type:size; display:grid; place-items:center; margin-bottom:16px}
+.ring{position:relative; width:min(100cqw,100cqh); aspect-ratio:1; display:grid; place-items:center}
+.ring svg{position:absolute; inset:0; width:100%; height:100%; transform:rotate(-90deg)}
+.ring .trk{stroke:var(--fill)}
+.ring .arc{stroke:rgb(var(--tint)); stroke-linecap:round}
+.big{display:flex; align-items:baseline; gap:6px; font:300 min(30cqmin, 120px)/1 var(--rounded); letter-spacing:-.03em; font-variant-numeric:tabular-nums}
+.big span{font:600 max(15px, 6cqmin)/1 var(--font); color:var(--ink-2); letter-spacing:0}
+.routine{display:none; flex-direction:column; gap:var(--gap); min-height:0}
+.rcard{flex:1; justify-content:space-between}
+.rcard .top{display:flex; justify-content:space-between; align-items:center}
+.rcard .top h2{margin:0; font:600 20px/1.2 var(--display); letter-spacing:-.01em}
+.rcard .top small{display:block; font-size:15px; color:var(--ink-2); margin-top:2px}
+.rtime{font:300 clamp(56px, 9vmin, 88px)/1 var(--rounded); letter-spacing:-.03em; font-variant-numeric:tabular-nums}
+.days{display:grid; grid-template-columns:repeat(7,1fr); gap:8px}
+.days button{height:40px; border-radius:20px; background:var(--fill-2); font:600 15px var(--font); color:var(--ink)}
+.days button[aria-pressed="true"]{background:rgba(var(--tint),.18); color:rgb(var(--tint))}
+.seg{position:relative; display:grid; grid-auto-flow:column; grid-auto-columns:1fr; height:44px; padding:3px; border-radius:22px; background:var(--fill-2)}
+.seg button{position:relative; z-index:1; border-radius:19px; font:600 15px var(--font); color:var(--ink)}
+.seg .slens{position:absolute; z-index:0; top:3px; bottom:3px; left:0; border-radius:19px; background:var(--seg-sel);
+  box-shadow:0 3px 10px rgba(0,0,0,.14), 0 0 0 .5px rgba(0,0,0,.05); will-change:transform}
+.pill-btn{height:52px; border-radius:26px; margin-top:12px; font:600 17px var(--font); transition:transform .25s cubic-bezier(.3,1.4,.5,1)}
+.pill-btn:active{transform:scale(.96)}
+.list{padding:4px var(--pad)}
+.row{display:flex; align-items:center; justify-content:space-between; gap:12px; min-height:52px; position:relative}
+.row + .row::before{content:""; position:absolute; left:0; right:0; top:0; height:.5px; background:var(--sep)}
+.row .val{color:var(--ink-2); font-variant-numeric:tabular-nums}
+/* Interruptor iOS 26/27 */
+.switch{position:relative; flex:none; width:64px; height:28px; border-radius:14px; background:var(--fill); transition:background-color .25s}
+.switch::after{content:""; position:absolute; top:2px; left:2px; width:38px; height:24px; border-radius:12px; background:#fff;
+  box-shadow:0 3px 8px rgba(0,0,0,.16), 0 0 0 .5px rgba(0,0,0,.04); transition:transform .35s cubic-bezier(.3,1.35,.5,1), width .2s, background-color .2s}
+.switch[aria-checked="true"]{background:rgb(var(--green))}
+.switch[aria-checked="true"]::after{transform:translateX(22px)}
+.switch:active::after{width:44px; background:rgba(255,255,255,.55); box-shadow:inset 0 0 0 1px rgba(255,255,255,.9), 0 6px 14px rgba(0,0,0,.18)}
+.switch[aria-checked="true"]:active::after{transform:translateX(16px)}
+
+/* ============================================================
+   Disposições
+   ============================================================ */
+/* iPhone: separador "Cores" mostra favoritas + brancos */
+#v-luz.show-colors{grid-template-rows:minmax(0,1fr); grid-template-areas:"colors"}
+#v-luz.show-colors .wheel-zone, #v-luz.show-colors .bright{display:none}
+#v-luz.show-colors .colors{display:flex}
+
+/* iPhone deitado */
+@media (orientation:landscape) and (max-height:599px){
+  #v-luz{grid-template-columns:minmax(0,1fr) minmax(0,1fr); grid-template-rows:minmax(0,1fr); grid-template-areas:"wheel bright"}
+  #v-luz.show-colors .colors{flex-direction:row}
+  #v-luz.show-colors{grid-template-columns:minmax(0,1fr); grid-template-rows:minmax(0,1fr)}
+  .fxgrid{grid-template-columns:repeat(3, minmax(0,1fr))}
+  #v-timer{grid-template-columns:1fr 1fr; grid-template-rows:minmax(0,1fr)}
+}
+
+/* iPad e ecrãs grandes */
+@media (min-width:700px) and (min-height:600px){
+  :root{--pad:24px; --gap:18px; --r:36px}
+  body{padding-bottom:max(var(--pad), env(safe-area-inset-bottom))}
+  header{height:72px; margin:10px auto 14px}
+  nav.tabs{left:50%; right:auto; bottom:auto; top:calc(env(safe-area-inset-top) + 20px); transform:translateX(-50%); height:52px; border-radius:26px; grid-auto-columns:118px}
+  nav.tabs button{flex-direction:row; gap:7px; font:600 15px/1 var(--font); letter-spacing:-.01em; border-radius:22px}
+  nav.tabs button svg{width:20px; height:20px}
+  nav.tabs .lens{border-radius:22px}
+  nav.tabs{grid-auto-columns:116px}
+  #v-luz{grid-template-columns:minmax(0,1fr); grid-template-rows:var(--wp, minmax(0,1.2fr)) minmax(0,1fr); grid-template-areas:"wheel" "bright"}
+  .fav{width:min(80px,100%)}
+  .fxgrid{grid-template-columns:repeat(3, minmax(0,1fr))}
+  #v-timer{grid-template-columns:1fr 1fr; grid-template-rows:minmax(0,1fr)}
+  #v-timer .list{display:none}
+  #v-timer .routine{display:flex}
+}
+@media (min-width:700px) and (min-height:600px) and (orientation:landscape){
+  #v-luz{grid-template-columns:min(var(--wh, 60%), 64%) minmax(0,1fr); grid-template-rows:minmax(0,1fr); grid-template-areas:"wheel bright"}
+  .bright{grid-template-columns:minmax(0,1fr); grid-template-rows:minmax(0,1fr) clamp(132px, 24%, 168px)}
+  .bright .power{flex-direction:row; align-items:center; justify-content:flex-start; gap:16px}
+  #v-luz.show-colors .colors{flex-direction:row}
+  #v-luz.show-colors{grid-template-columns:minmax(0,1fr); grid-template-rows:minmax(0,1fr)}
+  .colors .favs-m, .colors .whites-m{flex:1}
+  .whites{grid-template-columns:1fr; grid-auto-rows:minmax(0,1fr); gap:8px}
+  .white{flex-direction:row-reverse; align-items:center; padding:0 16px; border-radius:18px}
+  .white .top{width:auto; align-items:center; gap:10px}
+  .white .k{padding-top:0}
+  .white > span:last-child{display:flex; align-items:baseline; gap:8px}
+  .white small{margin-top:0}
+  .white b{font-size:20px}
+  .white small{font-size:15px}
+  .white .k{font-size:15px}
+  .white{padding:0 22px}
+}
+/* iPad de pé */
+@media (min-width:700px) and (min-height:600px) and (orientation:portrait){
+  .colors .favs-m{flex:1.3}
+  #v-timer{grid-template-columns:1fr; grid-template-rows:minmax(0,1.5fr) minmax(0,1fr)}
+  #v-timer .routine{flex-direction:row}
+  .fxgrid{grid-template-columns:repeat(2, minmax(0,1fr))}
+}
+/* Ecrãs baixos (iPhone pequeno, Bluefy com barras) */
+@media (max-height:620px){
+  header{height:52px; margin:4px auto 6px} h1{font-size:30px}
+  :root{--pad:16px; --gap:12px}
+  .mh{margin-bottom:10px}
+}
+
+/* ---------- v1: ligação, "em breve", folha de afinação, avisos ---------- */
+.connect-pill{height:44px; padding:0 18px; border-radius:22px; font:600 15px var(--font); display:none; align-items:center; gap:8px;
+  transition:transform .25s cubic-bezier(.3,1.4,.5,1)}
+.connect-pill:active{transform:scale(.94)}
+.connect-pill svg{width:18px; height:18px}
+body[data-conn="off"] .connect-pill, body[data-conn="connecting"] .connect-pill{display:inline-flex}
+body[data-conn="connecting"] .connect-pill{opacity:.7; pointer-events:none}
+.circle .badge{transition:background-color .3s}
+body[data-conn="off"] .circle .badge{background:var(--ink-3)}
+body[data-conn="connecting"] .circle .badge{background:rgb(var(--tint)); animation:blink 1s ease-in-out infinite}
+@keyframes blink{50%{opacity:.25}}
+.menu .mi[hidden]{display:none}
+.view.soon-view{position:relative}
+.soon-view > *:not(.soon){opacity:.32; pointer-events:none; filter:saturate(.5)}
+.soon{position:absolute; z-index:5; left:50%; top:50%; transform:translate(-50%,-50%); padding:14px 22px; border-radius:26px; text-align:center; white-space:nowrap}
+.soon b{display:block; font:600 17px/1.2 var(--font)}
+.soon small{display:block; font-size:13px; color:var(--ink-2); margin-top:2px}
+/* Folha "Afinar brancos" */
+.sheet-scrim{position:fixed; inset:0; z-index:29; background:rgba(0,0,0,.28); opacity:0; pointer-events:none}
+.sheet-scrim.on{pointer-events:auto}
+.sheet{position:fixed; z-index:30; left:50%; bottom:calc(12px + env(safe-area-inset-bottom)); width:min(560px, calc(100% - 2 * var(--pad)));
+  border-radius:34px; padding:10px var(--pad) var(--pad); transform:translate(-50%, 120%); background:var(--g-bg-strong)}
+.sheet .grab{width:38px; height:5px; border-radius:3px; background:var(--ink-3); margin:0 auto 12px}
+.sh-head{display:flex; align-items:center; justify-content:space-between; margin-bottom:4px}
+.sh-head h2{margin:0; font:700 22px/1.2 var(--display); letter-spacing:-.01em}
+.sh-hint{margin:0 0 16px; font-size:15px; color:var(--ink-2)}
+.sheet .seg{margin-bottom:18px}
+.rgbrow{display:grid; grid-template-columns:22px 1fr 40px; align-items:center; gap:12px; height:44px}
+.rgbrow b{font:600 15px var(--rounded)}
+.rgbrow output{font:500 15px var(--rounded); text-align:right; color:var(--ink-2); font-variant-numeric:tabular-nums}
+.rgbrow .slider .track i{background:var(--c)}
+.sh-btns{display:grid; grid-template-columns:1fr 1.4fr; gap:10px; margin-top:16px}
+.sh-btns button{height:50px; border-radius:25px; font:600 17px var(--font); transition:transform .25s cubic-bezier(.3,1.4,.5,1)}
+.sh-btns button:active{transform:scale(.96)}
+.sh-btns .ghost{background:var(--fill-2)}
+/* Avisos curtos */
+.toast{position:fixed; z-index:40; left:50%; width:max-content; top:calc(env(safe-area-inset-top) + 12px); max-width:calc(100% - 2 * var(--pad)); padding:12px 18px; border-radius:22px;
+  font:500 15px/1.3 var(--font); text-align:center; transform:translate(-50%, -160%); background:var(--g-bg-strong); pointer-events:none}
+@media (prefers-reduced-motion: reduce){
+  #ambient{transition:none} .fxc .dots i, .fxc .pv{animation:none !important}
+  .switch::after, .slider .thumb, .white .chk, .fxc .chk{transition:none}
+}
+@media (prefers-reduced-transparency: reduce){
+  .glass{background:var(--solid); -webkit-backdrop-filter:none; backdrop-filter:none}
+  .glass::before{display:none}
+}
+@media (prefers-contrast: more){ .glass::after{background:var(--ink)} }
 </style>
 </head>
 <body>
-<main>
-  <h1>Luz</h1>
-  <p class="sub">Teste v5 · fecha a Lotus Lamp X e o nRF Connect antes de ligar.</p>
+<div id="ambient" aria-hidden="true"></div>
 
-  <div id="state">Desligada</div>
-  <div id="methods"></div>
-
-  <div class="grid">
-    <button data-hex="7e0004f00001ff00ef">Ligar</button>
-    <button data-hex="7e0004000000ff00ef">Desligar</button>
-    <button class="c" style="background:#ff3b30" data-hex="7e000503ff000000ef">Vermelho</button>
-    <button class="c" style="background:#34c759" data-hex="7e00050300ff0000ef">Verde</button>
-    <button class="c" style="background:#007aff" data-hex="7e0005030000ff00ef">Azul</button>
-    <button data-hex="7e000503ffffff00ef">Branco</button>
+<header>
+  <h1 id="title">Luz</h1>
+  <div class="actions">
+    <button class="connect-pill glass tinted" id="connectBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m7 7 10 10-5 5V2l5 5L7 17"/></svg><span id="connectTxt">Ligar à fita</span></button>
+    <button class="circle glass" id="conn" aria-label="Ligação" aria-haspopup="menu" aria-expanded="false">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m7 7 10 10-5 5V2l5 5L7 17"/></svg>
+      <span class="badge" id="badge"></span>
+    </button>
   </div>
+</header>
 
-  <pre id="log"></pre>
+<div class="scrim" id="scrim"></div>
+<div class="menu glass" id="menu" role="menu" aria-label="Ligação">
+  <div class="mi" role="none" style="cursor:default">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m7 7 10 10-5 5V2l5 5L7 17"/></svg>
+    <span id="mname">Fita de LEDs<small id="mstate">Desligada</small></span>
+  </div>
+  <hr>
+  <button class="mi" role="menuitem" id="miConnect"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m7 7 10 10-5 5V2l5 5L7 17"/></svg>Procurar a fita</button>
+  <button class="mi" role="menuitem" id="miAll"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>Mostrar todos os aparelhos</button>
+  <button class="mi" role="menuitem" id="miTune"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6"/></svg>Afinar brancos</button>
+  <button class="mi danger" role="menuitem" id="miDisc"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>Desligar da fita</button>
+</div>
+
+<main>
+  <!-- LUZ (no iPhone, o separador Cores mostra só .colors) -->
+  <section id="v-luz" class="view">
+    <div class="wheel-zone">
+      <div class="wheel" id="wheel" role="slider" aria-label="Cor"><div class="knob" id="knob"></div></div>
+    </div>
+
+    <div class="bright">
+      <div class="capsule glass" id="cap" role="slider" aria-label="Brilho" aria-valuemin="0" aria-valuemax="100" aria-valuenow="80" tabindex="0">
+        <div class="fill" id="fill"></div>
+        <svg class="sun" id="sun" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="12" r="4.6"/><g stroke="currentColor" stroke-width="2.1" stroke-linecap="round"><path d="M12 2.4v2.1M12 19.5v2.1M2.4 12h2.1M19.5 12h2.1M5.2 5.2l1.5 1.5M17.3 17.3l1.5 1.5M5.2 18.8l1.5-1.5M17.3 6.7l1.5-1.5"/></g></svg>
+        <div class="cap-info" id="capinfo"><div class="readout" id="readout">80<span>%</span></div><div class="cap-label">Brilho</div></div>
+      </div>
+      <button class="power glass" id="power" aria-pressed="true" aria-label="Ligar ou desligar a luz">
+        <span class="p-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 3v8"/><path d="M6.4 6.6a8 8 0 1 0 11.2 0"/></svg></span>
+        <span class="p-txt"><b id="bstate">Ligada</b><small>ELK-BLEDOM01</small></span>
+      </button>
+    </div>
+
+    <div class="colors">
+      <div class="module glass favs-m">
+        <div class="mh"><h2>Favoritas</h2><span class="aside" id="favcount"></span></div>
+        <div class="favs" id="favs"></div>
+      </div>
+      <div class="module glass whites-m">
+        <div class="mh"><h2>Brancos</h2></div>
+        <div class="whites">
+          <!-- data-send: valores enviados à fita (a afinar com a fita real) · data-show: tom mostrado no botão -->
+          <button class="white" data-send="255,110,20"  data-show="#ffc98f"><span class="top"><span class="k">2700 K</span><span class="chk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></span></span><span><b>Quente</b><small>Fim do dia</small></span></button>
+          <button class="white" data-send="255,170,70"  data-show="#ffeacc"><span class="top"><span class="k">4000 K</span><span class="chk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></span></span><span><b>Neutra</b><small>Dia a dia</small></span></button>
+          <button class="white" data-send="255,215,150" data-show="#eef3ff"><span class="top"><span class="k">6500 K</span><span class="chk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></span></span><span><b>Fria</b><small>Foco</small></span></button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- EFEITOS -->
+  <section id="v-fx" class="view soon-view" hidden>
+    <div class="soon glass"><b>Efeitos chegam a seguir</b><small>Primeiro afinamos cor, brilho e brancos</small></div>
+    <div class="fxgrid" id="fx"></div>
+    <div class="module glass speed-m">
+      <div class="mh" style="margin-bottom:6px"><h2>Velocidade</h2><span class="aside" id="spdv">50%</span></div>
+      <div class="slider" id="spd" role="slider" aria-label="Velocidade" aria-valuemin="0" aria-valuemax="100"><div class="track"><i></i></div><div class="thumb"></div></div>
+    </div>
+  </section>
+
+  <!-- HORÁRIOS -->
+  <section id="v-timer" class="view soon-view" hidden>
+    <div class="soon glass"><b>Horários chegam depois</b><small>Um passo de cada vez</small></div>
+    <div class="module glass sleep">
+      <div class="mh"><h2>Desligar daqui a</h2></div>
+      <div class="dial"><div class="ring">
+        <svg viewBox="0 0 100 100" aria-hidden="true"><circle class="trk" cx="50" cy="50" r="45" fill="none" stroke-width="5"/><circle class="arc" id="arc" cx="50" cy="50" r="45" fill="none" stroke-width="5" pathLength="100" stroke-dasharray="100" stroke-dashoffset="75"/></svg>
+        <div class="big" id="big">30<span>min</span></div>
+      </div></div>
+      <div class="seg" id="seg" role="radiogroup" aria-label="Minutos">
+        <div class="slens" id="slens"></div>
+        <button role="radio" aria-checked="false">15</button><button role="radio" aria-checked="true">30</button><button role="radio" aria-checked="false">60</button><button role="radio" aria-checked="false">90</button>
+      </div>
+      <button class="pill-btn glass tinted" id="go">Iniciar</button>
+    </div>
+    <div class="routine">
+      <div class="module glass rcard">
+        <div class="top"><div><h2>Acordar</h2><small>Acende devagar</small></div><button class="switch" role="switch" aria-checked="false" aria-label="Acender ao acordar"></button></div>
+        <div class="rtime">07:30</div>
+        <div class="days" aria-label="Dias"><button aria-pressed="true">S</button><button aria-pressed="true">T</button><button aria-pressed="true">Q</button><button aria-pressed="true">Q</button><button aria-pressed="true">S</button><button aria-pressed="false">S</button><button aria-pressed="false">D</button></div>
+      </div>
+      <div class="module glass rcard">
+        <div class="top"><div><h2>Deitar</h2><small>Apaga devagar</small></div><button class="switch" role="switch" aria-checked="true" aria-label="Apagar ao deitar"></button></div>
+        <div class="rtime">00:00</div>
+        <div class="days" aria-label="Dias"><button aria-pressed="true">S</button><button aria-pressed="true">T</button><button aria-pressed="true">Q</button><button aria-pressed="true">Q</button><button aria-pressed="true">S</button><button aria-pressed="true">S</button><button aria-pressed="true">D</button></div>
+      </div>
+    </div>
+    <div class="module glass list">
+      <div class="row"><span>Acender ao acordar</span><button class="switch" role="switch" aria-checked="false" aria-label="Acender ao acordar"></button></div>
+      <div class="row"><span>Hora</span><span class="val">07:30</span></div>
+      <div class="row"><span>Apagar ao deitar</span><button class="switch" role="switch" aria-checked="true" aria-label="Apagar ao deitar"></button></div>
+      <div class="row"><span>Hora</span><span class="val">00:00</span></div>
+    </div>
+  </section>
 </main>
 
+<div class="sheet-scrim" id="shScrim"></div>
+<div class="sheet glass" id="sheet" role="dialog" aria-modal="true" aria-label="Afinar brancos">
+  <div class="grab"></div>
+  <div class="sh-head"><h2>Afinar brancos</h2>
+    <button class="circle glass" id="shClose" aria-label="Fechar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>
+  <p class="sh-hint">A fita muda ao vivo. Ajusta até o branco ficar como queres.</p>
+  <div class="seg" id="wseg" role="radiogroup" aria-label="Branco">
+    <div class="slens"></div><button role="radio" aria-checked="true">Quente</button><button role="radio" aria-checked="false">Neutra</button><button role="radio" aria-checked="false">Fria</button>
+  </div>
+  <div class="rgbrow"><b>R</b><div class="slider" data-ch="0" style="--c:#ff3b30"><div class="track"><i></i></div><div class="thumb"></div></div><output>255</output></div>
+  <div class="rgbrow"><b>G</b><div class="slider" data-ch="1" style="--c:#34c759"><div class="track"><i></i></div><div class="thumb"></div></div><output>110</output></div>
+  <div class="rgbrow"><b>B</b><div class="slider" data-ch="2" style="--c:#007aff"><div class="track"><i></i></div><div class="thumb"></div></div><output>20</output></div>
+  <div class="sh-btns"><button class="ghost" id="shReset">Repor</button><button class="glass tinted" id="shSave">Guardar</button></div>
+</div>
+<div class="toast glass" id="toast" role="status" aria-live="polite"></div>
+
+<nav class="tabs glass" role="tablist" aria-label="Secções">
+  <div class="lens" id="lens"></div>
+  <button role="tab" aria-selected="true" data-view="v-luz" data-title="Luz">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a7 7 0 0 0-4 12.74V17a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-2.26A7 7 0 0 0 12 2Zm-2.5 18a.5.5 0 0 0 0 1h5a.5.5 0 0 0 0-1h-5Zm1 2a.5.5 0 0 0 0 1h3a.5.5 0 0 0 0-1h-3Z"/></svg><span>Luz</span></button>
+  <button role="tab" aria-selected="false" data-view="v-cores" data-title="Cores">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.5C6.8 2.5 2.5 6.6 2.5 11.7c0 4.7 3.7 8.8 8.4 8.8 1.3 0 2-.8 2-1.8 0-.5-.2-.9-.5-1.3-.3-.4-.5-.8-.5-1.3 0-1 .8-1.7 1.8-1.7h2c2.6 0 4.8-2.1 4.8-4.7 0-4-4-7.2-8.5-7.2ZM7 12.3a1.6 1.6 0 1 1 0-3.2 1.6 1.6 0 0 1 0 3.2Zm2.9-4a1.6 1.6 0 1 1 0-3.2 1.6 1.6 0 0 1 0 3.2Zm4.2 0a1.6 1.6 0 1 1 0-3.2 1.6 1.6 0 0 1 0 3.2Zm3 3.9a1.6 1.6 0 1 1 0-3.2 1.6 1.6 0 0 1 0 3.2Z"/></svg><span>Cores</span></button>
+  <button role="tab" aria-selected="false" data-view="v-fx" data-title="Efeitos">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M10.5 2.5 12.3 7.7l5.2 1.8-5.2 1.8-1.8 5.2-1.8-5.2-5.2-1.8 5.2-1.8 1.8-5.2Zm8 10 .9 2.6 2.6.9-2.6.9-.9 2.6-.9-2.6-2.6-.9 2.6-.9.9-2.6ZM6 15.5l.7 1.8 1.8.7-1.8.7L6 20.5l-.7-1.8-1.8-.7 1.8-.7.7-1.8Z"/></svg><span>Efeitos</span></button>
+  <button role="tab" aria-selected="false" data-view="v-timer" data-title="Horários">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 1.8h6a1 1 0 1 1 0 2h-2v1.3a8.6 8.6 0 1 1-2 0V3.8H9a1 1 0 1 1 0-2Zm3 7a1 1 0 0 0-1 1v4.1c0 .3.1.5.3.7l2.4 2.4a1 1 0 0 0 1.4-1.4L13 13.5V9.8a1 1 0 0 0-1-1Z"/></svg><span>Horários</span></button>
+</nav>
+
 <script>
-var SERVICE = '0000fff0-0000-1000-8000-00805f9b34fb';
-var CHAR    = '0000fff3-0000-1000-8000-00805f9b34fb';
-var ch = null;
-
-var logEl = document.getElementById('log');
-var stateEl = document.getElementById('state');
-
-function describe(e){
-  if (e === undefined) return 'undefined';
-  if (e === null) return 'null';
-  if (typeof e === 'string') return e;
-  var parts = [];
-  if (e.name) parts.push(e.name);
-  if (e.message) parts.push(e.message);
-  if (!parts.length) { try { parts.push(JSON.stringify(e)); } catch(_) {} parts.push(String(e)); }
-  return parts.join(': ');
+/* ============================================================
+   Mola ao estilo Apple (damping ratio + response), interrompível
+   ============================================================ */
+const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+class Spring{
+  constructor(v,{damping=1,response=.4}={}){ this.x=v; this.v=0; this.target=v; this.set(damping,response); this.cb=null; }
+  set(d,r){ this.k=(2*Math.PI/r)**2; this.c=4*Math.PI*d/r; }
+  to(t,{velocity,damping,response}={}){ if(damping!=null) this.set(damping,response??.4); if(velocity!=null) this.v=velocity; this.target=t;
+    if(reduced){ this.x=t; this.v=0; this.cb&&this.cb(t); return; } Spring.run(this); }
+  jump(t){ this.x=this.target=t; this.v=0; this.cb&&this.cb(t); }
+  step(dt){ const a=-this.k*(this.x-this.target)-this.c*this.v; this.v+=a*dt; this.x+=this.v*dt;
+    const done=Math.abs(this.v)<.001&&Math.abs(this.x-this.target)<.0005; if(done){ this.x=this.target; this.v=0; } this.cb&&this.cb(this.x); return done; }
+  static run(s){ Spring.active.add(s); if(Spring.raf) return; let last=performance.now();
+    const loop=now=>{ const dt=Math.min(.032,(now-last)/1000); last=now; const n=Math.ceil(dt/.004)||1;
+      for(const sp of [...Spring.active]){ let done=false; for(let i=0;i<n;i++) done=sp.step(dt/n); if(done) Spring.active.delete(sp); }
+      Spring.raf=Spring.active.size?requestAnimationFrame(loop):0; };
+    Spring.raf=requestAnimationFrame(loop); }
 }
-function log(m){ logEl.textContent += new Date().toLocaleTimeString('pt-PT') + '  ' + m + '\n'; }
-function state(t, cls){ stateEl.textContent = t; stateEl.className = cls || ''; }
+Spring.active=new Set(); Spring.raf=0;
+const rubber=(o,d,c=.55)=>(o*d*c)/(d+c*Math.abs(o));
+function tracker(){ const p=[]; return { add(v){ const t=performance.now(); p.push([t,v]); while(p.length>2&&t-p[0][0]>100) p.shift(); },
+  get(){ if(p.length<2) return 0; const [a,va]=p[0],[b,vb]=p[p.length-1]; return (vb-va)/Math.max(1,b-a)*1000; }, reset(){ p.length=0; } }; }
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const CHECK='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>';
 
-log('Teste v5');
-log('Bluetooth no navegador: ' + (navigator.bluetooth ? 'sim' : 'NÃO — abre no Bluefy'));
+/* ============================================================
+   Estado da luz
+   ============================================================ */
+const css=document.documentElement.style;
+const S={ on:true, h:28, s:.78, b:.8, white:null };
+const favs=[[0,1],[16,.9],[28,.78],[48,.95],[85,.75],[130,.8],[165,.8],[190,.85],[215,1],[275,.7],[330,.75]];
+const hsv=(h,s)=>{ const f=n=>{ const k=(n+h/60)%6; return 1-s*Math.max(0,Math.min(k,4-k,1)); }; return [f(5),f(3),f(1)].map(x=>Math.round(x*255)); };
+const hex=h=>[1,3,5].map(i=>parseInt(h.substr(i,2),16));
+const toHS=(r,g,b)=>{ const mx=Math.max(r,g,b), mn=Math.min(r,g,b), s=mx?(mx-mn)/mx:0; let h=0;
+  if(mx!==mn){ h= mx===r ? 60*(((g-b)/(mx-mn))%6) : mx===g ? 60*((b-r)/(mx-mn)+2) : 60*((r-g)/(mx-mn)+4); } return [(h+360)%360,s]; };
+const whites=$$('.white'); whites.forEach(w=>w.style.background=w.dataset.show);
 
-var METHODS = [
-  ['1 · Pelo nome (ELK)',          { filters:[{namePrefix:'ELK'}], optionalServices:[SERVICE] }],
-  ['2 · Pelo nome exato',          { filters:[{name:'ELK-BLEDOM01'}], optionalServices:[SERVICE] }],
-  ['3 · Pelo serviço FFF0',        { filters:[{services:[SERVICE]}] }],
-  ['4 · Pelo nome, sem extras',    { filters:[{namePrefix:'ELK'}] }],
-  ['5 · Todos os aparelhos',       { acceptAllDevices:true }]
+function paint(){
+  const [r,g,b] = S.white!=null ? hex(whites[S.white].dataset.show) : hsv(S.h,S.s);
+  css.setProperty('--light',`${r},${g},${b}`);
+  css.setProperty('--glow', S.on ? (.45+.55*S.b).toFixed(3) : '0.12');
+  $('#power').setAttribute('aria-pressed', S.on);
+  $('#bstate').textContent = S.on ? 'Ligada' : 'Desligada';
+  $$('.fav[data-c]').forEach(f=>f.setAttribute('aria-current', S.white==null && f.dataset.c===`${r},${g},${b}`));
+  whites.forEach((w,i)=>w.setAttribute('aria-pressed', S.white===i));
+  send();
+}
+/* ============================================================
+   Bluetooth — ELK-BLEDOM (serviço FFF0, canal FFF3, comandos 7E … EF)
+   Fila com "o mais recente ganha": nunca se acumulam comandos atrasados.
+   ============================================================ */
+const SVC='0000fff0-0000-1000-8000-00805f9b34fb', CHR='0000fff3-0000-1000-8000-00805f9b34fb';
+const BLE={dev:null, ch:null, busy:false, last:{}, pending:{}, manual:false, tries:0};
+const CMD={
+  power:v=> v ? [0x7e,0x00,0x04,0xf0,0x00,0x01,0xff,0x00,0xef] : [0x7e,0x00,0x04,0x00,0x00,0x00,0xff,0x00,0xef],
+  color:c=>[0x7e,0x00,0x05,0x03,c[0],c[1],c[2],0x00,0xef],
+  bright:b=>[0x7e,0x00,0x01,b,0x00,0x00,0x00,0x00,0xef],
+};
+function queue(type,val){ const k=JSON.stringify(val); if(BLE.last[type]===k && !(type in BLE.pending)) return; BLE.pending[type]=val; pump(); }
+async function pump(){
+  if(BLE.busy || !BLE.ch) return;
+  const t=['power','color','bright'].find(x=>x in BLE.pending); if(!t) return;
+  const val=BLE.pending[t]; delete BLE.pending[t]; BLE.busy=true;
+  try{ await BLE.ch.writeValue(new Uint8Array(CMD[t](val))); BLE.last[t]=JSON.stringify(val); }
+  catch(e){ console.warn('Falha ao enviar', e); }
+  BLE.busy=false; setTimeout(pump, 10);
+}
+let calib=[[255,110,20],[255,170,70],[255,215,150]];
+let tuning=null;   // enquanto a folha de afinação está aberta, a fita mostra o branco a afinar
+function currentRGB(){ return tuning ? tuning.rgb : S.white!=null ? calib[S.white] : hsv(S.h,S.s); }
+function send(){
+  if(!S.on && !tuning){ queue('power',false); save(); return; }
+  queue('power',true); queue('color',currentRGB()); queue('bright',Math.max(1,Math.round(S.b*100))); save();
+}
+
+/* Guardar estado no aparelho */
+const KEY='luz.v1';
+let saveT=0;
+function save(){ clearTimeout(saveT); saveT=setTimeout(()=>{ try{ localStorage.setItem(KEY, JSON.stringify({S:{on:S.on,h:S.h,s:S.s,b:S.b,white:S.white}, favs, calib})); }catch(e){} },300); }
+function load(){ try{ const d=JSON.parse(localStorage.getItem(KEY)||'null'); if(!d) return;
+  if(d.S) Object.assign(S,d.S); if(Array.isArray(d.favs)&&d.favs.length) favs.splice(0,favs.length,...d.favs); if(Array.isArray(d.calib)&&d.calib.length===3) calib=d.calib; }catch(e){} }
+
+/* ============================================================
+   Roda de cor — arrasto 1:1, molas X/Y independentes,
+   o botão cresce como uma lupa enquanto o dedo está em cima
+   ============================================================ */
+const wheel=$('#wheel'), knob=$('#knob');
+const kx=new Spring(0,{response:.35}), ky=new Spring(0,{response:.35}), ks=new Spring(1,{damping:.7,response:.3});
+const drawK=()=>{ knob.style.transform=`translate3d(${kx.x}px,${ky.x}px,0) scale(${ks.x})`; }; kx.cb=ky.cb=ks.cb=drawK;
+const geo=()=>{ const r=wheel.getBoundingClientRect(); return {R:r.width/2, l:r.left, t:r.top}; };
+const posFor=(h,s)=>{ const g=geo(), a=h*Math.PI/180; return [g.R+Math.cos(a)*s*g.R, g.R+Math.sin(a)*s*g.R]; };
+function placeK(anim,opt){ const [x,y]=posFor(S.h,S.s); if(anim){ kx.to(x,opt); ky.to(y,opt); } else { kx.jump(x); ky.jump(y); } }
+function pick(px,py){ const g=geo(), dx=px-g.l-g.R, dy=py-g.t-g.R; S.h=(Math.atan2(dy,dx)*180/Math.PI+360)%360; S.s=Math.min(1,Math.hypot(dx,dy)/g.R); S.white=null; }
+let wd=false;
+wheel.addEventListener('pointerdown',e=>{ wheel.setPointerCapture(e.pointerId); wd=true; pick(e.clientX,e.clientY); S.on=true;
+  placeK(true,{damping:1,response:.28}); ks.to(1.35,{damping:.65,response:.3}); paint(); });
+wheel.addEventListener('pointermove',e=>{ if(!wd) return; pick(e.clientX,e.clientY); const [x,y]=posFor(S.h,S.s);
+  kx.to(x,{damping:1,response:.1}); ky.to(y,{damping:1,response:.1}); paint(); });
+const endW=()=>{ if(!wd) return; wd=false; ks.to(1,{damping:.6,response:.35}); };
+wheel.addEventListener('pointerup',endW); wheel.addEventListener('pointercancel',endW);
+new ResizeObserver(()=>placeK(false)).observe(wheel);
+
+/* ============================================================
+   Brilho — cápsula estilo Centro de Controlo: arrasto 1:1,
+   elástico nas pontas, devolução com a velocidade do dedo
+   ============================================================ */
+const cap=$('#cap'), fill=$('#fill'), sun=$('#sun'), readout=$('#readout'), capinfo=$('#capinfo');
+const shown=new Spring(S.b,{response:.3});
+shown.cb=x=>{ const over=x>1?x-1:x<0?x:0, base=Math.max(0,Math.min(1,x)), v=S.on?base:0;
+  fill.style.transform=`scaleY(${v})`;
+  cap.style.transform= over ? `scale(${1+Math.abs(over)*.14},${1+Math.abs(over)*.3})` : '';
+  cap.style.transformOrigin = over>0 ? '50% 100%' : '50% 0%';
+  sun.style.transform=`scale(${.75+.4*v}) rotate(${v*90}deg)`;
+  const H=cap.clientHeight||1; cap.classList.toggle('low', v < (capinfo.offsetHeight*.55+18)/H); cap.classList.toggle('full', v > 1-34/H);
+  const p=Math.round(v*100); readout.firstChild.textContent=p; cap.setAttribute('aria-valuenow',p); };
+let cd=null; const vt=tracker();
+cap.addEventListener('pointerdown',e=>{ cap.setPointerCapture(e.pointerId); cd={y:e.clientY, b0:S.on?S.b:0, moved:false, h:cap.clientHeight}; vt.reset(); });
+cap.addEventListener('pointermove',e=>{ if(!cd) return; const dy=cd.y-e.clientY;
+  if(!cd.moved){ if(Math.abs(dy)<8) return; cd.moved=true; S.on=true; cd.y=e.clientY; cd.b0=S.on?S.b:0; return; }
+  const raw=cd.b0+dy/cd.h, disp= raw>1 ? 1+rubber(raw-1,1) : raw<0 ? rubber(raw,1) : raw;
+  S.b=Math.max(.01,Math.min(1,raw)); vt.add(disp); shown.jump(disp); paint(); });
+const endC=()=>{ if(!cd) return;
+  if(!cd.moved){ S.on=!S.on; paint(); shown.to(S.b,{velocity:0,damping:1,response:.3}); shown.cb(shown.x); }
+  else shown.to(S.b,{velocity:vt.get(),damping:.8,response:.35});
+  cd=null; };
+cap.addEventListener('pointerup',endC); cap.addEventListener('pointercancel',endC);
+cap.addEventListener('keydown',e=>{ const d={ArrowUp:.05,ArrowRight:.05,ArrowDown:-.05,ArrowLeft:-.05}[e.key]; if(d==null) return;
+  e.preventDefault(); S.on=true; S.b=Math.max(.01,Math.min(1,S.b+d)); shown.to(S.b); paint(); });
+$('#power').addEventListener('click',()=>{ S.on=!S.on; paint(); shown.cb(shown.x); });
+
+/* ============================================================
+   Favoritas e brancos
+   ============================================================ */
+
+function renderFavs(){ const box=$('#favs'); box.innerHTML='';
+  favs.slice(-11).forEach(([h,s])=>{ const [r,g,b]=hsv(h,s), el=document.createElement('button'); el.className='fav';
+    el.style.background=`rgb(${r},${g},${b})`; el.dataset.c=`${r},${g},${b}`; el.setAttribute('aria-label','Cor favorita');
+    el.onclick=()=>{ S.h=h; S.s=s; S.white=null; S.on=true; placeK(true,{damping:1,response:.45}); paint(); shown.cb(shown.x); };
+    box.appendChild(el); });
+  const add=document.createElement('button'); add.className='fav add'; add.setAttribute('aria-label','Guardar a cor atual');
+  add.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>';
+  add.onclick=()=>{ if(S.white==null){ favs.push([S.h,S.s]); renderFavs(); paint(); } };
+  box.appendChild(add); $('#favcount').textContent=favs.length+' cores'; }
+renderFavs();
+whites.forEach((w,i)=>w.onclick=()=>{ const [h,s]=toHS(...hex(w.dataset.show)); S.h=h; S.s=s; S.white=i; S.on=true; placeK(true); paint(); shown.cb(shown.x); });
+
+/* ============================================================
+   Efeitos
+   ============================================================ */
+const FX=[
+  ['Arco-íris','Todas as cores, suave',['#ff3b30','#ff9500','#ffcc00','#34c759','#007aff']],
+  ['Respirar','Acende e apaga devagar',['#0a84ff','#0a84ff','#0a84ff']],
+  ['Vela','Tremeluzir quente',['#ff9f0a','#ff6a00','#ffb340']],
+  ['Pulsar','Vermelho e laranja',['#ff2d55','#ff9f0a']],
+  ['Oceano','Verde e azul',['#30d158','#64d2ff','#0a84ff']],
+  ['Estroboscópio','Branco rápido',['#ffffff','#dfe6f2','#ffffff','#dfe6f2']],
 ];
-var box = document.getElementById('methods');
-METHODS.forEach(function(m){
-  var btn = document.createElement('button');
-  btn.textContent = 'Ligar: ' + m[0];
-  btn.addEventListener('click', function(){ connect(m[0], m[1]); });
-  box.appendChild(btn);
-});
+const fxBox=$('#fx');
+FX.forEach(([n,d,cs])=>{ const b=document.createElement('button'); b.className='fxc glass'; b.setAttribute('aria-pressed','false');
+  const pos=['25% 30%','72% 28%','48% 62%','85% 70%','15% 75%'];
+  const pv=cs.map((c,i)=>`radial-gradient(circle at ${pos[i%5]}, ${c} 0, transparent 46%)`).join(',');
+  b.innerHTML=`<span class="pv" style="background:${pv}"></span><span class="dots">${cs.map((c,i)=>`<i style="--c:${c};--i:${i}"></i>`).join('')}</span><span><b>${n}</b><small>${d}</small></span><span class="chk">${CHECK}</span>`;
+  b.onclick=()=>{ const on=b.getAttribute('aria-pressed')!=='true'; $$('.fxc').forEach(x=>x.setAttribute('aria-pressed', x===b && on)); };
+  fxBox.appendChild(b); });
 
-function connect(label, opts){
-  if (!navigator.bluetooth) { state('Este navegador não tem Bluetooth', 'bad'); return; }
-  state('Passo 1/4 · a abrir a lista…');
-  log('== Método ' + label);
-  log('1. A pedir a lista de aparelhos');
-  var p;
-  try { p = navigator.bluetooth.requestDevice(opts); }
-  catch(e){ state('Falhou no passo 1/4', 'bad'); log('   ERRO imediato: ' + describe(e)); return; }
-  p.then(function(device){
-      log('   escolhido: ' + device.name);
-      state('Passo 2/4 · a ligar…');
-      log('2. A ligar');
-      try { device.addEventListener('gattserverdisconnected', function(){ ch = null; state('Desligada'); log('   ligação perdida'); }); } catch(_){}
-      return device.gatt.connect();
-    })
-    .then(function(server){
-      state('Passo 3/4 · a abrir o serviço FFF0…');
-      log('3. A abrir o serviço FFF0');
-      return server.getPrimaryService(SERVICE);
-    })
-    .then(function(service){
-      state('Passo 4/4 · a abrir o canal FFF3…');
-      log('4. A abrir o canal FFF3');
-      return service.getCharacteristic(CHAR);
-    })
-    .then(function(c){
-      ch = c;
-      state('Ligada ✓ (método ' + label.split(' ')[0] + ')', 'ok');
-      log('   pronto');
-    })
-    .catch(function(e){
-      state('Falhou no ' + stateEl.textContent.split(' ·')[0].toLowerCase() + ' (método ' + label.split(' ')[0] + ')', 'bad');
-      log('   ERRO: ' + describe(e));
-    });
+(function(){ const el=$('#spd'), th=el.querySelector('.thumb'), bar=el.querySelector('i'), out=$('#spdv');
+  const sp=new Spring(.5,{response:.25}); sp.cb=x=>{ const w=el.clientWidth-38; th.style.left=(19+x*w)+'px'; bar.style.width=(19+x*w)+'px'; };
+  let on=false; const set=e=>{ const r=el.getBoundingClientRect(); const v=Math.max(0,Math.min(1,(e.clientX-r.left-19)/(r.width-38)));
+    sp.to(v,{damping:1,response:on?.08:.25}); out.textContent=Math.round(v*100)+'%'; el.setAttribute('aria-valuenow',Math.round(v*100)); };
+  el.addEventListener('pointerdown',e=>{ el.setPointerCapture(e.pointerId); on=true; el.classList.add('active'); set(e); });
+  el.addEventListener('pointermove',e=>{ if(on) set(e); });
+  const end=()=>{ on=false; el.classList.remove('active'); }; el.addEventListener('pointerup',end); el.addEventListener('pointercancel',end);
+  new ResizeObserver(()=>sp.cb(sp.x)).observe(el); })();
+
+/* ============================================================
+   Horários: controlo segmentado com lente, interruptores
+   ============================================================ */
+const arc=$('#arc'), arcS=new Spring(.25,{damping:.9,response:.45}); arcS.cb=x=>arc.setAttribute('stroke-dashoffset',(100-x*100).toFixed(2));
+(function(){ const seg=$('#seg'), lens=$('#slens'), bs=[...seg.querySelectorAll('button')];
+  const lx=new Spring(0,{damping:.85,response:.32}); let w=0; lx.cb=x=>{ lens.style.transform=`translateX(${x}px)`; lens.style.width=w+'px'; };
+  const sel=(b,anim)=>{ bs.forEach(x=>x.setAttribute('aria-checked',x===b)); w=b.offsetWidth; anim?lx.to(b.offsetLeft):lx.jump(b.offsetLeft); $('#big').firstChild.textContent=b.textContent; arcS[anim?'to':'jump'](+b.textContent/120); };
+  bs.forEach(b=>b.onclick=()=>sel(b,true));
+  new ResizeObserver(()=>sel(bs.find(b=>b.getAttribute('aria-checked')==='true'),false)).observe(seg); })();
+$$('.days button').forEach(d=>d.onclick=()=>d.setAttribute('aria-pressed', d.getAttribute('aria-pressed')!=='true'));
+$$('.switch').forEach(s=>s.onclick=()=>s.setAttribute('aria-checked', s.getAttribute('aria-checked')!=='true'));
+
+/* ============================================================
+   Menu da ligação — abre a partir do botão (mola), fecha ao tocar fora
+   ============================================================ */
+(function(){ const btn=$('#conn'), menu=$('#menu'), scrim=$('#scrim');
+  const sc=new Spring(.4,{damping:.8,response:.32}), op=new Spring(0,{response:.2});
+  const draw=()=>{ menu.style.transform=`scale(${sc.x})`; menu.style.opacity=Math.max(0,Math.min(1,op.x)); }; sc.cb=op.cb=draw;
+  let open=false;
+  const set=o=>{ open=o; btn.setAttribute('aria-expanded',o); menu.classList.toggle('open',o); scrim.classList.toggle('on',o);
+    if(o){ const r=btn.getBoundingClientRect(); menu.style.top=(r.bottom+10)+'px'; menu.style.right=(innerWidth-r.right)+'px'; }
+    sc.to(o?1:.4,{damping:o?.78:1,response:o?.34:.22}); op.to(o?1:0,{response:o?.18:.16}); };
+  btn.onclick=()=>set(!open); scrim.addEventListener('pointerdown',()=>set(false));
+  window.closeMenu=()=>set(false);
+  $('#miConnect').onclick=()=>{ set(false); connect(false); };
+  $('#miAll').onclick=()=>{ set(false); connect(true); };
+  $('#miDisc').onclick=()=>{ set(false); disconnect(); };
+  $('#miTune').onclick=()=>{ set(false); openSheet(); };
+  draw(); })();
+
+/* ============================================================
+   Ligação à fita
+   ============================================================ */
+function toast(msg, ms=2600){ const t=$('#toast'); t.textContent=msg;
+  toast.s ||= (()=>{ const sp=new Spring(-1.6,{damping:.8,response:.4}); sp.cb=y=>t.style.transform=`translate(-50%, ${y*100}%)`; return sp; })();
+  toast.s.to(0,{damping:.78,response:.42}); clearTimeout(toast.t); toast.t=setTimeout(()=>toast.s.to(-1.6,{damping:1,response:.35}), ms); }
+function setConn(state){
+  document.body.dataset.conn=state;
+  const name=BLE.dev?.name || 'Fita de LEDs';
+  $('#mname').firstChild.textContent=name;
+  $('#mstate').textContent= state==='on' ? 'Ligada' : state==='connecting' ? 'A ligar…' : 'Desligada';
+  $('#conn').setAttribute('aria-label','Ligação: '+$('#mstate').textContent);
+  $('#connectTxt').textContent= state==='connecting' ? 'A ligar…' : 'Ligar à fita';
+  $('#miConnect').hidden = state==='on'; $('#miAll').hidden = state==='on'; $('#miDisc').hidden = state!=='on';
+  $('.p-txt small').textContent = state==='on' ? name : 'Sem ligação';
 }
+function explain(e){
+  const n=e&&e.name, m=(e&&e.message)||'';
+  if(n==='NotFoundError' && /cancel/i.test(m)) return null;               // fechaste a lista
+  if(n==='NotFoundError') return 'Não encontrei a fita. Está ligada à corrente?';
+  if(n==='NetworkError') return 'A fita está ocupada. Fecha a Lotus Lamp X noutros aparelhos.';
+  if(n==='SecurityError') return 'O Bluefy não tem autorização para usar o Bluetooth.';
+  return 'Não consegui ligar'+(m?': '+m:'')+'.';
+}
+async function connect(all){
+  if(!navigator.bluetooth){ toast('Abre a app no Bluefy para usar o Bluetooth.', 3600); return; }
+  let dev;
+  try{
+    dev = await navigator.bluetooth.requestDevice(all ? {acceptAllDevices:true, optionalServices:[SVC]}
+      : {filters:[{namePrefix:'ELK'},{namePrefix:'MELK'},{namePrefix:'LEDBLE'}], optionalServices:[SVC]});
+  }catch(e){ const msg=explain(e); if(msg) toast(msg,3600); else if(e===undefined||!e?.name) toast('Se a fita não aparecer, usa “Mostrar todos os aparelhos” no menu.',4200); return; }
+  attach(dev);
+}
+async function attach(dev, quiet){
+  if(BLE.dev && BLE.dev!==dev) BLE.dev.removeEventListener('gattserverdisconnected', onDisc);
+  BLE.dev=dev; BLE.manual=false; setConn('connecting');
+  dev.removeEventListener('gattserverdisconnected', onDisc); dev.addEventListener('gattserverdisconnected', onDisc);
+  try{
+    const srv=await dev.gatt.connect();
+    const svc=await srv.getPrimaryService(SVC);
+    BLE.ch=await svc.getCharacteristic(CHR);
+    BLE.tries=0; BLE.last={}; setConn('on'); if(!quiet) toast('Ligada a '+(dev.name||'fita'));
+    send();
+  }catch(e){ BLE.ch=null; setConn('off'); if(!quiet){ const msg=explain(e); if(msg) toast(msg,3800); } }
+}
+function onDisc(){
+  BLE.ch=null; BLE.pending={}; setConn('off');
+  if(BLE.manual) return;
+  if(BLE.tries<3){ const wait=1000*2**BLE.tries++; setTimeout(()=>{ if(!BLE.ch && BLE.dev && !BLE.manual) attach(BLE.dev,true); }, wait); }
+  else toast('A ligação caiu. Toca em “Ligar à fita”.',3600);
+}
+function disconnect(){ BLE.manual=true; try{ BLE.dev?.gatt?.disconnect(); }catch(e){} BLE.ch=null; setConn('off'); }
+$('#connectBtn').onclick=()=>connect(false);
 
-function hexToBytes(h){ var a = new Uint8Array(h.length/2); for (var i=0;i<a.length;i++) a[i] = parseInt(h.substr(i*2,2),16); return a; }
-
-Array.prototype.forEach.call(document.querySelectorAll('[data-hex]'), function(b){
-  b.addEventListener('click', function(){
-    if (!ch) { log('Primeiro liga à fita'); return; }
-    var bytes = hexToBytes(b.getAttribute('data-hex'));
-    ch.writeValue(bytes)
-      .then(function(){ log('enviado ' + b.textContent); })
-      .catch(function(e){ log('ERRO ao enviar: ' + describe(e)); });
-  });
+/* ============================================================
+   Folha "Afinar brancos" — muda a fita ao vivo
+   ============================================================ */
+const sheet=$('#sheet'), shScrim=$('#shScrim');
+const shY=new Spring(1.2,{damping:1,response:.4}), shO=new Spring(0,{response:.25});
+shY.cb=y=>sheet.style.transform=`translate(-50%, ${y*100}%)`; shO.cb=o=>shScrim.style.opacity=o;
+const rgbSliders=[...sheet.querySelectorAll('.slider')].map(el=>{
+  const th=el.querySelector('.thumb'), bar=el.querySelector('i'), out=el.parentElement.querySelector('output'), ch=+el.dataset.ch;
+  const draw=v=>{ const w=el.clientWidth-38; th.style.left=(19+v/255*w)+'px'; bar.style.width=(19+v/255*w)+'px'; out.textContent=Math.round(v); };
+  let on=false;
+  const set=e=>{ const r=el.getBoundingClientRect(); const v=Math.round(Math.max(0,Math.min(1,(e.clientX-r.left-19)/(r.width-38)))*255);
+    tuning.rgb[ch]=v; draw(v); send(); };
+  el.addEventListener('pointerdown',e=>{ el.setPointerCapture(e.pointerId); on=true; el.classList.add('active'); set(e); });
+  el.addEventListener('pointermove',e=>{ if(on) set(e); });
+  const end=()=>{ on=false; el.classList.remove('active'); }; el.addEventListener('pointerup',end); el.addEventListener('pointercancel',end);
+  return {draw};
 });
+const wseg=$('#wseg'), wlens=wseg.querySelector('.slens'), wbtns=[...wseg.querySelectorAll('button')];
+const wl=new Spring(0,{damping:.85,response:.32}); let wlw=0; wl.cb=x=>{ wlens.style.transform=`translateX(${x}px)`; wlens.style.width=wlw+'px'; };
+function pickWhite(i,anim){ wbtns.forEach((b,j)=>b.setAttribute('aria-checked',j===i)); const b=wbtns[i]; wlw=b.offsetWidth; anim?wl.to(b.offsetLeft):wl.jump(b.offsetLeft);
+  tuning={i, rgb:[...calib[i]]}; rgbSliders.forEach((s,k)=>s.draw(tuning.rgb[k])); send(); }
+wbtns.forEach((b,i)=>b.onclick=()=>pickWhite(i,true));
+function openSheet(){ shScrim.classList.add('on'); shY.to(0,{damping:.86,response:.42}); shO.to(1);
+  requestAnimationFrame(()=>pickWhite(S.white!=null?S.white:0,false)); }
+function closeSheet(){ tuning=null; shScrim.classList.remove('on'); shY.to(1.2,{damping:1,response:.34}); shO.to(0); send(); }
+$('#shClose').onclick=closeSheet; shScrim.addEventListener('pointerdown',closeSheet);
+$('#shReset').onclick=()=>{ const def=[[255,110,20],[255,170,70],[255,215,150]][tuning.i]; tuning.rgb=[...def]; rgbSliders.forEach((s,k)=>s.draw(def[k])); send(); };
+$('#shSave').onclick=()=>{ calib[tuning.i]=[...tuning.rgb]; S.white=tuning.i; S.on=true; const i=tuning.i; tuning=null;
+  const [h,s]=toHS(...hex(whites[i].dataset.show)); S.h=h; S.s=s; placeK(true); closeSheet(); paint(); shown.cb(shown.x); toast('Branco '+['quente','neutro','frio'][i]+' guardado'); };
+
+/* ============================================================
+   Separadores — a lente desliza com mola e estica-se ao premir
+   ============================================================ */
+const tabs=$$('nav.tabs button'), lens=$('#lens'), luz=$('#v-luz');
+const lx=new Spring(0,{damping:.8,response:.36}), lw=new Spring(0,{damping:1,response:.3}), lsy=new Spring(1,{damping:.6,response:.3});
+const drawL=()=>{ lens.style.transform=`translateX(${lx.x}px) scaleY(${lsy.x})`; lens.style.width=lw.x+'px'; }; lx.cb=lw.cb=lsy.cb=drawL;
+let cur=tabs[0];
+function select(t,anim=true){
+  cur=t; tabs.forEach(x=>x.setAttribute('aria-selected',x===t));
+  const v=t.dataset.view, isLuz=v==='v-luz'||v==='v-cores';
+  $$('section.view').forEach(s=>s.hidden = isLuz ? s.id!=='v-luz' : s.id!==v);
+  luz.classList.toggle('show-colors', v==='v-cores');
+  $('#title').textContent=t.dataset.title;
+  const x=t.offsetLeft, w=t.offsetWidth;
+  if(anim){ lx.to(x,{damping:.8,response:.36}); lw.to(w); lsy.to(1,{damping:.6,response:.35}); } else { lx.jump(x); lw.jump(w); }
+  requestAnimationFrame(()=>placeK(false));
+}
+tabs.forEach(t=>{ t.addEventListener('pointerdown',()=>lsy.to(1.12,{damping:.6,response:.18})); t.addEventListener('click',()=>select(t)); });
+const wide=matchMedia('(min-width:700px) and (min-height:600px)');
+const relayout=()=>select(cur,false);
+wide.addEventListener('change',relayout); addEventListener('resize',relayout);
+
+// iPad: a coluna/linha da roda tem exatamente o tamanho do maior círculo que cabe
+const mainEl=$('main');
+new ResizeObserver(()=>{ const h=mainEl.clientHeight, w=mainEl.clientWidth;
+  css.setProperty('--wh', h+'px'); css.setProperty('--wp', Math.round(Math.min(w, h*.6))+'px'); placeK(false); }).observe(mainEl);
+load(); renderFavs();
+setConn('off');
+paint(); shown.jump(S.b); select(tabs[0],false); placeK(false);
+// Se o navegador já conhece a fita, tenta voltar a ligar sem perguntar
+(async()=>{ try{ if(navigator.bluetooth?.getDevices){ const ds=await navigator.bluetooth.getDevices(); const d=ds.find(x=>/ELK|LEDBLE/i.test(x.name||'')); if(d) attach(d,true); } }catch(e){} })();
+if(!navigator.bluetooth) setTimeout(()=>toast('Abre a app no Bluefy para usar o Bluetooth.', 4000), 600);
+new ResizeObserver(()=>shown.cb(shown.x)).observe(cap);
 </script>
 </body>
 </html>

@@ -138,22 +138,30 @@ main{position:relative; z-index:1; flex:1; min-height:0; width:100%; max-width:1
 .knob{position:absolute; left:0; top:0; z-index:2; width:46px; height:46px; margin:-23px 0 0 -23px; border-radius:50%; pointer-events:none;
   background:rgb(var(--light)); box-shadow:0 0 0 4px #fff, 0 6px 18px rgba(0,0,0,.32); will-change:transform}
 
-.bright{grid-area:bright; display:grid; grid-template-columns:minmax(104px, 36%) 1fr; grid-template-rows:minmax(0,1fr); gap:var(--pad); padding:16px}
-.capsule{position:relative; border-radius:30px; overflow:hidden; touch-action:none; background:var(--fill); transform-origin:50% 100%; will-change:transform;
-  box-shadow:inset 0 0 0 .5px rgba(255,255,255,.08)}
-.capsule .fill{position:absolute; inset:0; background:rgb(var(--tint)); transform-origin:50% 100%; will-change:transform}
-.capsule .fill::before{content:""; position:absolute; inset:0; background:linear-gradient(180deg, rgba(255,255,255,.28), transparent 30%)}
-.capsule .sun{position:absolute; left:50%; bottom:22px; width:30px; height:30px; margin-left:-15px; color:#fff; filter:drop-shadow(0 1px 2px rgba(0,0,0,.35)); pointer-events:none; will-change:transform}
-.bside{display:flex; flex-direction:column; justify-content:space-between; align-items:flex-end; text-align:right; min-width:0; padding:4px 2px 2px 0}
-.bside .label{font:600 20px/1.2 var(--display); letter-spacing:-.01em}
-.bside .state{font-size:15px; color:var(--ink-2); margin-top:2px}
-.readout{font:600 clamp(44px, 9vmin, 64px)/1 var(--rounded); letter-spacing:-.02em; font-variant-numeric:tabular-nums}
-.readout span{font-size:.45em; font-weight:600; color:var(--ink-2); margin-left:2px}
-.power{align-self:flex-end; width:68px; height:68px; border-radius:50%; display:grid; place-items:center; transition:transform .25s cubic-bezier(.3,1.4,.5,1), background-color .3s, color .3s}
-.power:active{transform:scale(.9)}
-.power svg{width:28px; height:28px}
-.power[aria-pressed="true"]{background:rgba(var(--tint),.95); color:#fff; box-shadow:0 10px 30px rgba(var(--tint),.45), 0 0 0 .5px rgba(0,0,0,.1)}
-.power[aria-pressed="true"]::before{background:linear-gradient(180deg, rgba(255,255,255,.45), transparent 55%)}
+.bright{grid-area:bright; display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); grid-template-rows:minmax(0,1fr); gap:var(--gap); min-height:0}
+/* Mosaico do brilho: o próprio mosaico é o slider */
+.capsule{position:relative; border-radius:var(--r); overflow:hidden; touch-action:none; transform-origin:50% 100%; will-change:transform; min-height:0; cursor:grab}
+.capsule .fill{position:absolute; inset:0; z-index:0; background:linear-gradient(180deg, rgba(255,255,255,.24), transparent 26%), rgb(var(--tint)); transform-origin:50% 100%; will-change:transform}
+.capsule .sun{position:absolute; z-index:1; top:20px; left:20px; width:28px; height:28px; color:var(--ink-2); pointer-events:none; will-change:transform; transition:color .2s}
+.capsule.full .sun{color:#fff}
+.cap-info{position:absolute; z-index:1; left:20px; right:16px; bottom:18px; color:#fff; pointer-events:none; transition:color .2s}
+.capsule.low .cap-info{color:var(--ink)}
+.readout{font:600 clamp(40px, 8.5vmin, 58px)/1 var(--rounded); letter-spacing:-.02em; font-variant-numeric:tabular-nums}
+.readout span{font-size:.5em; margin-left:1px; opacity:.72}
+.cap-label{font:600 15px/1.2 var(--font); margin-top:4px; opacity:.85}
+/* Mosaico de ligar/desligar */
+.power{position:relative; border-radius:var(--r); padding:20px; display:flex; flex-direction:column; justify-content:space-between; align-items:flex-start; text-align:left; min-height:0;
+  transition:transform .3s cubic-bezier(.3,1.4,.5,1), background-color .3s, color .3s, box-shadow .3s}
+.power:active{transform:scale(.96)}
+.p-ico{width:52px; height:52px; border-radius:50%; display:grid; place-items:center; background:var(--fill); color:var(--ink); transition:background-color .3s, color .3s}
+.p-ico svg{width:24px; height:24px}
+.p-txt b{display:block; font:600 20px/1.2 var(--display); letter-spacing:-.01em}
+.p-txt{min-width:0; max-width:100%}
+.p-txt small{display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; font-size:13px; color:var(--ink-2); margin-top:3px; transition:color .3s}
+.power[aria-pressed="true"]{background:rgba(var(--tint),.96); color:#fff; box-shadow:0 14px 36px rgba(var(--tint),.38), 0 0 0 .5px rgba(0,0,0,.08)}
+.power[aria-pressed="true"]::before{background:linear-gradient(180deg, rgba(255,255,255,.42), transparent 55%)}
+.power[aria-pressed="true"] .p-ico{background:#fff; color:rgb(var(--tint))}
+.power[aria-pressed="true"] small{color:rgba(255,255,255,.82)}
 
 /* ---------- Cores (favoritas + brancos) ---------- */
 .colors{grid-area:colors; display:flex; flex-direction:column; gap:var(--gap); min-height:0}
@@ -278,7 +286,8 @@ main{position:relative; z-index:1; flex:1; min-height:0; width:100%; max-width:1
   #v-luz, #v-luz.show-colors{grid-template-columns:minmax(0,1fr) minmax(0,1fr); grid-template-rows:var(--wp, minmax(0,1.1fr)) minmax(0,1fr); grid-template-areas:"wheel wheel" "bright colors"}
   #v-luz .wheel-zone, #v-luz .bright{display:grid !important}
   #v-luz .colors{display:flex !important}
-  .bright{grid-template-columns:minmax(110px,42%) 1fr; padding:18px}
+  .bright{grid-template-columns:minmax(0,1fr); grid-template-rows:minmax(0,1fr) clamp(132px, 22%, 156px)}
+  .bright .power{flex-direction:row; align-items:center; justify-content:flex-start; gap:14px}
   .fxgrid{grid-template-columns:repeat(3, minmax(0,1fr))}
   #v-timer{grid-template-columns:1fr 1fr; grid-template-rows:minmax(0,1fr)}
   #v-timer .list{display:none}
@@ -286,12 +295,6 @@ main{position:relative; z-index:1; flex:1; min-height:0; width:100%; max-width:1
 }
 @media (min-width:700px) and (min-height:600px) and (orientation:landscape){
   #v-luz, #v-luz.show-colors{grid-template-columns:min(var(--wh, 46%), 48%) minmax(0,.7fr) minmax(0,1fr); grid-template-rows:minmax(0,1fr); grid-template-areas:"wheel bright colors"}
-  .bright{grid-template-columns:1fr; grid-template-rows:auto minmax(0,1fr) auto; padding:var(--pad)}
-  .bright .bside{display:contents}
-  .bright .bhead{grid-row:1; justify-self:start; text-align:left}
-  .bright .readout{display:none}
-  .bright .capsule{grid-row:2}
-  .bright .power{grid-row:3; justify-self:center; align-self:center}
   .colors .favs-m, .colors .whites-m{flex:1}
   .whites{grid-template-columns:1fr; grid-auto-rows:minmax(0,1fr); gap:8px}
   .white{flex-direction:row-reverse; align-items:center; padding:0 16px; border-radius:18px}
@@ -358,18 +361,16 @@ main{position:relative; z-index:1; flex:1; min-height:0; width:100%; max-width:1
       <div class="wheel" id="wheel" role="slider" aria-label="Cor"><div class="knob" id="knob"></div></div>
     </div>
 
-    <div class="module glass bright">
-      <div class="capsule" id="cap" role="slider" aria-label="Brilho" aria-valuemin="0" aria-valuemax="100" aria-valuenow="80" tabindex="0">
+    <div class="bright">
+      <div class="capsule glass" id="cap" role="slider" aria-label="Brilho" aria-valuemin="0" aria-valuemax="100" aria-valuenow="80" tabindex="0">
         <div class="fill" id="fill"></div>
         <svg class="sun" id="sun" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="12" r="4.6"/><g stroke="currentColor" stroke-width="2.1" stroke-linecap="round"><path d="M12 2.4v2.1M12 19.5v2.1M2.4 12h2.1M19.5 12h2.1M5.2 5.2l1.5 1.5M17.3 17.3l1.5 1.5M5.2 18.8l1.5-1.5M17.3 6.7l1.5-1.5"/></g></svg>
+        <div class="cap-info" id="capinfo"><div class="readout" id="readout">80<span>%</span></div><div class="cap-label">Brilho</div></div>
       </div>
-      <div class="bside">
-        <div class="bhead"><div class="label">Brilho</div><div class="state" id="bstate">Ligada</div></div>
-        <div class="readout" id="readout">80<span>%</span></div>
-        <button class="power glass" id="power" aria-pressed="true" aria-label="Ligar ou desligar a luz">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 3v8"/><path d="M6.4 6.6a8 8 0 1 0 11.2 0"/></svg>
-        </button>
-      </div>
+      <button class="power glass" id="power" aria-pressed="true" aria-label="Ligar ou desligar a luz">
+        <span class="p-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 3v8"/><path d="M6.4 6.6a8 8 0 1 0 11.2 0"/></svg></span>
+        <span class="p-txt"><b id="bstate">Ligada</b><small>ELK-BLEDOM01</small></span>
+      </button>
     </div>
 
     <div class="colors">
@@ -518,13 +519,14 @@ new ResizeObserver(()=>placeK(false)).observe(wheel);
    Brilho — cápsula estilo Centro de Controlo: arrasto 1:1,
    elástico nas pontas, devolução com a velocidade do dedo
    ============================================================ */
-const cap=$('#cap'), fill=$('#fill'), sun=$('#sun'), readout=$('#readout');
+const cap=$('#cap'), fill=$('#fill'), sun=$('#sun'), readout=$('#readout'), capinfo=$('#capinfo');
 const shown=new Spring(S.b,{response:.3});
 shown.cb=x=>{ const over=x>1?x-1:x<0?x:0, base=Math.max(0,Math.min(1,x)), v=S.on?base:0;
   fill.style.transform=`scaleY(${v})`;
   cap.style.transform= over ? `scale(${1+Math.abs(over)*.14},${1+Math.abs(over)*.3})` : '';
   cap.style.transformOrigin = over>0 ? '50% 100%' : '50% 0%';
   sun.style.transform=`scale(${.75+.4*v}) rotate(${v*90}deg)`;
+  const H=cap.clientHeight||1; cap.classList.toggle('low', v < (capinfo.offsetHeight*.55+18)/H); cap.classList.toggle('full', v > 1-34/H);
   const p=Math.round(v*100); readout.firstChild.textContent=p; cap.setAttribute('aria-valuenow',p); };
 let cd=null; const vt=tracker();
 cap.addEventListener('pointerdown',e=>{ cap.setPointerCapture(e.pointerId); cd={y:e.clientY, b0:S.on?S.b:0, moved:false, h:cap.clientHeight}; vt.reset(); });
@@ -637,6 +639,7 @@ const mainEl=$('main');
 new ResizeObserver(()=>{ const h=mainEl.clientHeight, w=mainEl.clientWidth;
   css.setProperty('--wh', h+'px'); css.setProperty('--wp', Math.round(Math.min(w, h*.47))+'px'); placeK(false); }).observe(mainEl);
 paint(); shown.jump(S.b); select(tabs[0],false);
+new ResizeObserver(()=>shown.cb(shown.x)).observe(cap);
 </script>
 </body>
 </html>

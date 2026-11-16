@@ -61,7 +61,8 @@
     <div class="row"><span id="dot" class="dot"></span><span id="status" class="grow">Desligada</span></div>
   </div>
   <div style="margin-top:10px"><button id="connect" class="primary">Ligar à fita</button></div>
-  <p class="hint">Fecha a Lotus Lamp X antes de ligar. A fita só aceita um telemóvel de cada vez.</p>
+  <div style="margin-top:10px"><button id="connectAll" class="tile" style="width:100%">Mostrar todos os aparelhos</button></div>
+  <p class="hint">Se o primeiro botão falhar, usa o segundo e escolhe a fita na lista. Fecha a Lotus Lamp X antes de ligar. A fita só aceita um telemóvel de cada vez.</p>
 
   <h2>Variante de comandos</h2>
   <div class="seg" role="group" aria-label="Variante">
@@ -108,7 +109,8 @@ const VARIANTS = {
        color:(r,g,b)=>hex(0x7e,0x07,0x05,0x03,r,g,b,0x10,0xef),
        bri:(v)=>hex(0x7e,0x07,0x01,v,0x00,0x00,0x00,0x00,0xef) },
 };
-const SERVICES = [0xfff0, 0xffe0, 0xffd5, 0xffd0];
+const SERVICES = [0xfff0, 0xffe0, 0xffd5, 0xffd0, 0xae00];
+const VERSION = 'teste v2';
 let variant = 'A', device = null, ch = null;
 
 const $ = s => document.querySelector(s);
@@ -117,32 +119,44 @@ function log(m){ const t=new Date().toLocaleTimeString('pt-PT'); lines.unshift(t
 const toHex = u => [...u].map(x=>x.toString(16).padStart(2,'0')).join(' ');
 function setStatus(text, state){ $('#status').textContent=text; $('#dot').className='dot'+(state?' '+state:''); }
 
-if(!navigator.bluetooth){ $('#nobt').hidden=false; $('#connect').disabled=true; log('Sem Web Bluetooth neste navegador.'); }
+log('Versão '+VERSION+' · '+navigator.userAgent.slice(0,80));
+if(!navigator.bluetooth){ $('#nobt').hidden=false; $('#connect').disabled=true; $('#connectAll').disabled=true; log('Sem Web Bluetooth neste navegador.'); }
 
-$('#connect').onclick = async () => {
+async function connectWith(opts){
   try{
     setStatus('A procurar…');
-    device = await navigator.bluetooth.requestDevice({
-      filters:[{namePrefix:'ELK'},{namePrefix:'MELK'},{namePrefix:'LEDBLE'},{namePrefix:'ELK-BLE'}],
-      optionalServices: SERVICES
-    });
+    device = await navigator.bluetooth.requestDevice(opts);
     log('Escolhida: '+(device.name||'(sem nome)'));
     device.addEventListener('gattserverdisconnected', ()=>{ ch=null; setStatus('Desligada'); log('Ligação perdida.'); });
     setStatus('A ligar…');
     const server = await device.gatt.connect();
+    log('Ligado ao aparelho. A procurar canais…');
     ch = null;
-    for(const s of await server.getPrimaryServices()){
-      log('Serviço '+s.uuid.slice(4,8));
-      for(const c of await s.getCharacteristics()){
+    for(const id of SERVICES){
+      let s; try{ s = await server.getPrimaryService(id); }catch(e){ continue; }
+      log('Serviço '+id.toString(16)+' encontrado');
+      let chars=[]; try{ chars = await s.getCharacteristics(); }catch(e){ log('  sem características: '+e.message); }
+      for(const c of chars){
         const p=c.properties; log('  car. '+c.uuid.slice(4,8)+(p.write?' write':'')+(p.writeWithoutResponse?' writeNR':'')+(p.notify?' notify':''));
         if(!ch && (p.write||p.writeWithoutResponse)) ch=c;
       }
+      if(ch) break;
     }
-    if(!ch) throw new Error('Não encontrei onde escrever.');
+    if(!ch) throw new Error('Ligou, mas não encontrei onde escrever.');
     log('A escrever em '+ch.uuid.slice(4,8));
     setStatus('Ligada a '+(device.name||'fita'), 'on');
-  }catch(e){ setStatus('Erro', 'err'); log('Erro: '+e.message); }
-};
+  }catch(e){
+    setStatus('Erro: '+(e.name||'')+' — '+e.message, 'err');
+    log('Erro ('+(e.name||'?')+'): '+e.message);
+    if(e.name==='NotFoundError') log('Dica: a lista estava vazia ou fechaste-a. Fecha a Lotus Lamp X e, nas Definições › Bluetooth, toca no (i) da fita › Esquecer.');
+    if(e.name==='NetworkError') log('Dica: a fita pode estar ligada a outro aparelho. Fecha a Lotus Lamp X noutros telemóveis/tablets.');
+  }
+}
+$('#connect').onclick = () => connectWith({
+  filters:[{namePrefix:'ELK'},{namePrefix:'MELK'},{namePrefix:'LEDBLE'}],
+  optionalServices: SERVICES
+});
+$('#connectAll').onclick = () => connectWith({ acceptAllDevices:true, optionalServices: SERVICES });
 
 async function send(bytes){
   if(!ch){ log('Primeiro liga à fita.'); return; }

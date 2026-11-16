@@ -89,7 +89,8 @@
 
   <h2>Registo</h2>
   <div class="card"><pre id="log">—</pre></div>
-  <p class="hint">Se algo correr mal, tira uma captura de ecrã a esta secção e envia-ma.</p>
+  <div style="margin-top:10px"><button id="copy" class="tile" style="width:100%">Copiar registo</button></div>
+  <p class="hint">Se algo correr mal, toca em Copiar registo e cola o texto na conversa com o Claude.</p>
 </main>
 
 <script>
@@ -110,7 +111,7 @@ const VARIANTS = {
        bri:(v)=>hex(0x7e,0x07,0x01,v,0x00,0x00,0x00,0x00,0xef) },
 };
 const SERVICES = [0xfff0, 0xffe0, 0xffd5, 0xffd0, 0xae00];
-const VERSION = 'teste v2';
+const VERSION = 'teste v3';
 let variant = 'A', device = null, ch = null;
 
 const $ = s => document.querySelector(s);
@@ -132,7 +133,12 @@ async function connectWith(opts){
     const server = await device.gatt.connect();
     log('Ligado ao aparelho. A procurar canais…');
     ch = null;
-    for(const id of SERVICES){
+    try{
+      const s0 = await server.getPrimaryService(0xfff0);
+      ch = await s0.getCharacteristic(0xfff3);
+      log('Canal FFF0/FFF3 encontrado diretamente');
+    }catch(e){ log('Acesso direto falhou ('+(e.name||'?')+'): '+e.message+' — a procurar…'); }
+    if(!ch) for(const id of SERVICES){
       let s; try{ s = await server.getPrimaryService(id); }catch(e){ continue; }
       log('Serviço '+id.toString(16)+' encontrado');
       let chars=[]; try{ chars = await s.getCharacteristics(); }catch(e){ log('  sem características: '+e.message); }
@@ -148,6 +154,7 @@ async function connectWith(opts){
   }catch(e){
     setStatus('Erro: '+(e.name||'')+' — '+e.message, 'err');
     log('Erro ('+(e.name||'?')+'): '+e.message);
+    setTimeout(()=>alert('Erro: '+(e.name||'?')+'\n'+e.message),50);
     if(e.name==='NotFoundError') log('Dica: a lista estava vazia ou fechaste-a. Fecha a Lotus Lamp X e, nas Definições › Bluetooth, toca no (i) da fita › Esquecer.');
     if(e.name==='NetworkError') log('Dica: a fita pode estar ligada a outro aparelho. Fecha a Lotus Lamp X noutros telemóveis/tablets.');
   }
@@ -177,6 +184,7 @@ document.querySelectorAll('.cmd').forEach(b=>b.onclick=()=>{
   if(c==='color'){ const [r,g,bl]=b.dataset.rgb.split(',').map(Number); send(V.color(r,g,bl)); }
   else send(V[c]());
 });
+$('#copy').onclick=async()=>{ const t=lines.slice().reverse().join('\n'); try{ await navigator.clipboard.writeText(t); $('#copy').textContent='Copiado ✓'; }catch(e){ prompt('Copia este texto:', t); } setTimeout(()=>$('#copy').textContent='Copiar registo',2000); };
 let briT=0;
 $('#bri').oninput=e=>{ clearTimeout(briT); const v=+e.target.value; briT=setTimeout(()=>send(VARIANTS[variant].bri(v)),60); };
 </script>

@@ -118,29 +118,33 @@ main{position:relative; z-index:1; flex:1; min-height:0; width:100%; max-width:1
 
 /* ================= AJUSTES ================= */
 #v-ajustes{display:grid; gap:var(--gap); grid-template-columns:minmax(0,1fr); grid-template-rows:minmax(0,1fr) auto auto; grid-template-areas:"wheel" "palette" "bright"}
-.wheel-zone{grid-area:wheel; min-height:0; container-type:size; display:grid; place-items:center}
-.bezel{width:min(100cqw,100cqh); aspect-ratio:1; border-radius:50%; padding:clamp(6px, 2.6cqmin, 14px); background:var(--g-clear)}
+.wheel-zone{grid-area:wheel; min-height:0; min-width:0; overflow:hidden; display:grid; place-items:center}
+.bezel{width:var(--wsz,200px); height:var(--wsz,200px); flex:none; border-radius:50%; padding:clamp(6px, calc(var(--wsz,200px) * .03), 14px); background:var(--g-clear)}
+.bezel::after{z-index:1}
 .wheel{position:relative; width:100%; height:100%; border-radius:50%; touch-action:none; cursor:crosshair;
   background:radial-gradient(circle closest-side, #fff 0%, rgba(255,255,255,.88) 10%, rgba(255,255,255,0) 100%),
              conic-gradient(from 90deg, #ff3b30, #ff9500, #ffcc00, #34c759, #00c7be, #32ade6, #007aff, #5856d6, #af52de, #ff2d55, #ff3b30);
   box-shadow:inset 0 0 0 .5px rgba(0,0,0,.12), inset 0 3px 14px rgba(0,0,0,.14)}
-.wheel::after{content:""; position:absolute; inset:0; border-radius:50%; pointer-events:none; background:radial-gradient(ellipse 60% 42% at 36% 20%, rgba(255,255,255,.32), transparent 70%)}
-.knob{position:absolute; left:0; top:0; z-index:2; width:44px; height:44px; margin:-22px 0 0 -22px; border-radius:50%; pointer-events:none;
+.wheel::after{content:""; position:absolute; inset:0; z-index:1; border-radius:50%; pointer-events:none; background:radial-gradient(ellipse 60% 42% at 36% 20%, rgba(255,255,255,.32), transparent 70%)}
+.knob{position:absolute; left:0; top:0; z-index:8; width:44px; height:44px; margin:-22px 0 0 -22px; border-radius:50%; pointer-events:none;
   background:rgb(var(--kc,255,140,60)); will-change:transform; box-shadow:0 0 0 4px #fff, 0 6px 18px rgba(0,0,0,.3), inset 0 2px 4px rgba(255,255,255,.35)}
 .knob.lens{box-shadow:0 0 0 2.5px rgba(255,255,255,.95), 0 0 0 6px rgba(255,255,255,.28), 0 12px 30px rgba(0,0,0,.32), inset 0 3px 8px rgba(255,255,255,.5), inset 0 -4px 10px rgba(0,0,0,.18)}
 .palette{grid-area:palette; display:flex; flex-direction:column}
 .favs{display:grid; grid-template-columns:repeat(7, minmax(0,1fr)); gap:7px 4px; justify-items:center}
 .fav{position:relative; width:100%; max-width:var(--favmax, 46px); aspect-ratio:1; border-radius:50%;
-  background:radial-gradient(circle at 32% 26%, rgba(255,255,255,.62), rgba(255,255,255,0) 44%), rgb(var(--c));
-  box-shadow:inset 0 -3px 7px rgba(0,0,0,.2), inset 0 0 0 .5px rgba(0,0,0,.14), 0 4px 10px rgba(var(--c),.38); transition:transform .35s cubic-bezier(.3,1.6,.5,1)}
+  background:linear-gradient(180deg, rgba(255,255,255,.22), rgba(255,255,255,0) 46%, rgba(0,0,0,.05)), rgb(var(--c));
+  box-shadow:inset 0 1.5px 1px rgba(255,255,255,.75), inset 0 -1px 1px rgba(255,255,255,.3), inset 0 0 0 1px rgba(255,255,255,.28),
+             inset 0 0 10px rgba(255,255,255,.12), 0 0 0 .5px rgba(0,0,0,.08), 0 5px 12px rgba(var(--c),.22);
+  transition:transform .35s cubic-bezier(.3,1.6,.5,1)}
 .fav:active{transform:scale(.86)}
 .fav[aria-current="true"]{outline:2.5px solid var(--ink); outline-offset:2.5px}
-.fav.add{background:var(--fill); box-shadow:inset 0 0 0 1.5px var(--ink-3); color:var(--ink-2); display:grid; place-items:center}
+.fav.add{background:var(--g-clear); -webkit-backdrop-filter:blur(12px) saturate(180%); backdrop-filter:blur(12px) saturate(180%); box-shadow:inset 0 1.5px 1px var(--g-hi), inset 0 0 0 1px var(--g-edge), 0 0 0 .5px var(--g-line); color:var(--ink-2); display:grid; place-items:center}
 .fav.add svg{width:44%; height:44%}
 .whites{display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:8px; margin-top:12px}
 .white{position:relative; height:42px; border-radius:21px; font:600 15px/1 var(--font); color:#2b1c0e; display:flex; align-items:center; justify-content:center; gap:6px;
-  background:linear-gradient(180deg, rgba(255,255,255,.55), rgba(255,255,255,0) 60%), var(--c);
-  box-shadow:inset 0 0 0 .5px rgba(0,0,0,.08), inset 0 -2px 6px rgba(120,60,0,.1), 0 4px 12px rgba(0,0,0,.06); transition:transform .35s cubic-bezier(.3,1.6,.5,1)}
+  background:linear-gradient(180deg, rgba(255,255,255,.3), rgba(255,255,255,0) 50%), var(--c);
+  box-shadow:inset 0 1.5px 1px rgba(255,255,255,.85), inset 0 -1px 1px rgba(255,255,255,.35), inset 0 0 0 1px rgba(255,255,255,.4), 0 0 0 .5px rgba(0,0,0,.07), 0 5px 14px rgba(0,0,0,.07);
+  transition:transform .35s cubic-bezier(.3,1.6,.5,1)}
 .white:active{transform:scale(.94)}
 .white[aria-pressed="true"]{outline:2.5px solid var(--ink); outline-offset:2.5px}
 .white .pen{display:none; width:14px; height:14px; opacity:.7}
@@ -173,8 +177,8 @@ main{position:relative; z-index:1; flex:1; min-height:0; width:100%; max-width:1
 .pill svg{width:18px; height:18px}
 
 /* ================= LUZES ================= */
-#v-luzes .scroll{height:100%; overflow-y:auto; overflow-x:hidden; -webkit-overflow-scrolling:touch; scrollbar-width:none; padding:2px 2px 14px; margin:0 -2px;
-  -webkit-mask:linear-gradient(180deg, transparent 0, #000 10px, #000 calc(100% - 18px), transparent 100%); mask:linear-gradient(180deg, transparent 0, #000 10px, #000 calc(100% - 18px), transparent 100%)}
+#v-luzes .scroll{height:100%; overflow-y:auto; overflow-x:hidden; -webkit-overflow-scrolling:touch; scrollbar-width:none; padding:10px 14px 24px; margin:-10px -14px 0;
+  -webkit-mask:linear-gradient(180deg, #000 0, #000 calc(100% - 22px), transparent 100%); mask:linear-gradient(180deg, #000 0, #000 calc(100% - 22px), transparent 100%)}
 #v-luzes .scroll::-webkit-scrollbar{display:none}
 .master{display:flex; align-items:center; gap:14px; padding:14px 16px; border-radius:28px}
 .master .ib{width:46px; height:46px} .master .tx{flex:1; min-width:0}
@@ -182,11 +186,12 @@ main{position:relative; z-index:1; flex:1; min-height:0; width:100%; max-width:1
 .sect h2{margin:22px 4px 10px; font:600 20px/1.2 var(--display); letter-spacing:-.012em}
 .tiles{display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:12px}
 .tile{--press:.97; --tc:var(--ink-3); position:relative; height:120px; border-radius:26px; padding:14px; display:flex; flex-direction:column; justify-content:space-between; text-align:left; cursor:pointer}
-.tile.on{background:linear-gradient(160deg, rgba(var(--tc),.34), rgba(var(--tc),.1) 70%), var(--g-reg)}
+.tile.on{background:linear-gradient(160deg, rgba(var(--tint),.26), rgba(var(--tint),.08) 70%), var(--g-reg)}
+.tile .cdot{display:inline-block; width:9px; height:9px; border-radius:50%; margin-right:6px; vertical-align:0; background:rgb(var(--tc)); box-shadow:inset 0 0 0 .5px rgba(0,0,0,.15)}
 .ib{position:relative; z-index:4; width:42px; height:42px; border-radius:50%; display:grid; place-items:center; background:var(--fill); color:var(--ink-2); flex:none;
   transition:background-color .3s, color .3s, box-shadow .3s, transform .35s cubic-bezier(.3,1.6,.5,1)}
 .ib:active{transform:scale(.88)} .ib svg{width:22px; height:22px}
-.on > .ib, .ib.on{background:rgb(var(--tc)); color:#fff; box-shadow:0 6px 16px rgba(var(--tc),.5), inset 0 1px 1px rgba(255,255,255,.5)}
+.on > .ib, .ib.on{background:linear-gradient(180deg, rgb(var(--tint-hi)), rgb(var(--tint))); color:#fff; box-shadow:0 6px 16px rgba(var(--tint),.45), inset 0 1.5px 1px rgba(255,255,255,.7), inset 0 0 0 1px rgba(255,255,255,.25)}
 .tile .more{position:absolute; z-index:4; top:12px; right:10px; width:34px; height:34px; border-radius:50%; display:grid; place-items:center; color:var(--ink-2); transition:background-color .2s}
 .tile .more:active{background:var(--fill)} .tile .more svg{width:20px; height:20px}
 .tile b{display:block; font:600 16px/1.2 var(--font); white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
@@ -446,7 +451,7 @@ nav.tabs button.hover{transform:scale(1.1)}
 <script>
 'use strict';
 /* ================= Utilidades ================= */
-const VERSION='3';
+const VERSION='3.1';
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const css=document.documentElement.style;
@@ -863,6 +868,7 @@ function makeTile({name,sub,icon,colour,isOn,linkSub,onOpen,onToggle,onMore}){
   const t=document.createElement('div'); t.className='tile glass gi'+(isOn?' on':''); t.setAttribute('role','button'); t.tabIndex=0; if(colour) t.style.setProperty('--tc',colour);
   t.innerHTML=`<button class="ib" aria-label="Ligar ou desligar ${name.replace(/"/g,'')}">${icon}</button><button class="more" aria-label="Opções">${ICON.more}</button><span><b></b><small></small></span>`;
   t.querySelector('b').textContent=name; const sm=t.querySelector('small'); sm.textContent=sub;
+  if(isOn&&colour){ const dot=document.createElement('span'); dot.className='cdot'; sm.prepend(dot); }
   if(linkSub){ const l=document.createElement('span'); l.className='link'; l.textContent=' · '+linkSub; sm.appendChild(l); }
   t.querySelector('.ib').onclick=e=>{ e.stopPropagation(); onToggle(); };
   t.querySelector('.more').onclick=e=>{ e.stopPropagation(); onMore(e.currentTarget); };
@@ -952,7 +958,7 @@ function select(tab,anim=true){
   document.body.dataset.tab=tab; store.ui.tab=tab; save();
   tabBtns.forEach(b=>b.setAttribute('aria-selected', b.dataset.tab===tab)); $$('section.view').forEach(v=>v.hidden= v.id!=='v-'+tab);
   renderHeader(); placeLens(anim); ls.to(1,{damping:.6,response:.35});
-  if(tab==='ajustes') requestAnimationFrame(()=>{ layoutVars(); placeKnob(false); brightBar.sync(false); });
+  if(tab==='ajustes') requestAnimationFrame(()=>{ layoutVars(); sizeWheel(); brightBar.sync(false); });
   if(tab==='efeitos') requestAnimationFrame(()=>speedBar.sync(false));
 }
 let nd=null;
@@ -981,12 +987,18 @@ function layoutVars(){
 new ResizeObserver(()=>{ layoutVars(); placeLens(false); }).observe(mainEl);
 addEventListener('resize',()=>{ layoutVars(); placeLens(false); });
 
+/* Roda: o maior círculo que cabe na sua zona (calculado aqui, funciona em qualquer navegador) */
+const zone=$('.wheel-zone');
+function sizeWheel(){ const r=zone.getBoundingClientRect(); if(!r.width||!r.height) return; css.setProperty('--wsz', Math.floor(Math.min(r.width, r.height))+'px'); placeKnob(false); }
+new ResizeObserver(sizeWheel).observe(zone);
+addEventListener('resize',sizeWheel);
+
 /* ================= Arranque ================= */
 load();
 renderFxGrid();
 select(store.ui.tab && $('#v-'+store.ui.tab) ? store.ui.tab : 'ajustes', false);
 renderAll(false);
-requestAnimationFrame(()=>{ layoutVars(); placeKnob(false); placeLens(false); brightBar.sync(false); speedBar.sync(false); });
+requestAnimationFrame(()=>{ layoutVars(); sizeWheel(); placeLens(false); brightBar.sync(false); speedBar.sync(false); });
 (async()=>{ try{ if(navigator.bluetooth?.getDevices){ const list=await navigator.bluetooth.getDevices();
   for(const bt of list){ const d=matchBt(bt); if(d){ bind(d,bt); attach(d.id,true); } } } }catch(e){} })();
 if(!navigator.bluetooth) setTimeout(()=>toast('Abre a app no Bluefy para usar o Bluetooth.',4000),700);

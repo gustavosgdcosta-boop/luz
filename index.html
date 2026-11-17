@@ -279,7 +279,17 @@ nav.tabs button.hover{transform:scale(1.1)}
 .sh-sw i{flex:none; width:44px; height:44px; border-radius:50%; box-shadow:inset 0 0 0 .5px rgba(0,0,0,.15), inset 0 -3px 6px rgba(0,0,0,.15)}
 .sh-sw span{font-size:14px; color:var(--ink-2); line-height:1.3}
 .rgbrow{display:grid; grid-template-columns:22px minmax(0,1fr) 40px; align-items:center; gap:12px; height:46px}
-.rgbrow b{font:600 15px var(--rounded)} .rgbrow output{font:500 15px var(--rounded); text-align:right; color:var(--ink-2); font-variant-numeric:tabular-nums}
+.rgbrow b{font:600 15px var(--rounded)}
+.rgbrow.step{grid-template-columns:22px 48px minmax(0,1fr) 48px; grid-template-rows:48px 4px; row-gap:6px; height:auto; margin-bottom:10px}
+.rgbrow.step b{color:var(--c)}
+.stp{width:48px; height:48px; border-radius:50%; display:grid; place-items:center; background:var(--fill-2); color:var(--ink); transition:transform .25s cubic-bezier(.3,1.6,.5,1), background-color .2s}
+.stp:active{transform:scale(.88); background:var(--fill)}
+.stp svg{width:22px; height:22px}
+.num{height:48px; width:100%; border:0; border-radius:16px; background:var(--fill-2); text-align:center; font:600 22px var(--rounded); font-variant-numeric:tabular-nums; outline:none; -webkit-appearance:none}
+.num:focus{box-shadow:inset 0 0 0 2px var(--c); background:var(--g-reg)}
+.num::placeholder{color:var(--ink-3)}
+.rgbrow.step .bar{grid-column:2 / 5; grid-row:2; height:4px; border-radius:2px; background:var(--fill); overflow:hidden; display:block}
+.rgbrow.step .bar i{display:block; height:100%; width:0; background:var(--c); border-radius:2px; transition:width .15s} .rgbrow output{font:500 15px var(--rounded); text-align:right; color:var(--ink-2); font-variant-numeric:tabular-nums}
 .slider{position:relative; height:36px; touch-action:none; cursor:ew-resize}
 .slider .track{position:absolute; left:0; right:0; top:50%; height:6px; margin-top:-3px; border-radius:3px; background:var(--fill)}
 .slider .track i{position:absolute; inset:0 auto 0 0; border-radius:3px; background:var(--c)}
@@ -441,10 +451,10 @@ nav.tabs button.hover{transform:scale(1.1)}
   <div class="sh-head"><h2 id="shTitle"></h2><button class="circle glass gi" id="shClose" aria-label="Fechar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>
   <div class="panel" id="pTune" hidden>
     <p class="sh-hint" id="tuneHint"></p>
-    <div class="sh-sw"><i id="tuneSw"></i><span>A bolinha mostra a cor pretendida. As barras são os valores exatos que a fita recebe.</span></div>
-    <div class="rgbrow"><b>R</b><div class="slider" data-ch="0" style="--c:#ff3b30"><div class="track"><i></i></div><div class="thumb"></div></div><output>0</output></div>
-    <div class="rgbrow"><b>G</b><div class="slider" data-ch="1" style="--c:#34c759"><div class="track"><i></i></div><div class="thumb"></div></div><output>0</output></div>
-    <div class="rgbrow"><b>B</b><div class="slider" data-ch="2" style="--c:#007aff"><div class="track"><i></i></div><div class="thumb"></div></div><output>0</output></div>
+    <div class="sh-sw"><i id="tuneSw"></i><span>A bolinha mostra a cor pretendida. Os números são os valores exatos que a fita recebe (0 a 255).</span></div>
+    <div class="rgbrow step" data-ch="0" style="--c:#ff3b30"><b>R</b><button class="stp" data-d="-1" aria-label="Descer vermelho"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="m15 6-6 6 6 6"/></svg></button><input class="num" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="3" aria-label="Valor do vermelho, de 0 a 255" value="0"><button class="stp" data-d="1" aria-label="Subir vermelho"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg></button><i class="bar"><i></i></i></div>
+    <div class="rgbrow step" data-ch="1" style="--c:#34c759"><b>G</b><button class="stp" data-d="-1" aria-label="Descer verde"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="m15 6-6 6 6 6"/></svg></button><input class="num" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="3" aria-label="Valor do verde, de 0 a 255" value="0"><button class="stp" data-d="1" aria-label="Subir verde"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg></button><i class="bar"><i></i></i></div>
+    <div class="rgbrow step" data-ch="2" style="--c:#007aff"><b>B</b><button class="stp" data-d="-1" aria-label="Descer azul"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="m15 6-6 6 6 6"/></svg></button><input class="num" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="3" aria-label="Valor do azul, de 0 a 255" value="0"><button class="stp" data-d="1" aria-label="Subir azul"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg></button><i class="bar"><i></i></i></div>
     <div class="sh-btns"><button class="danger-btn" id="tuneDel">Apagar</button><button class="ghost" id="tuneReset">Repor</button><button class="tinted" id="tuneSave">Guardar</button></div>
   </div>
   <div class="panel" id="pGroup" hidden>
@@ -462,7 +472,7 @@ nav.tabs button.hover{transform:scale(1.1)}
 <script>
 'use strict';
 /* ================= Utilidades ================= */
-const VERSION='3.16';
+const VERSION='3.17';
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const css=document.documentElement.style;
@@ -718,14 +728,23 @@ $('#shClose').onclick=closeSheet; shScrim.addEventListener('pointerdown',closeSh
 addEventListener('keydown',e=>{ if(e.key==='Escape'){ if(menuEl._open) closeMenu(); else if(shScrim.classList.contains('on')) closeSheet(); } });
 
 /* Afinar uma favorita ou um branco (a fita muda ao vivo) */
-const tuneSliders=$$('#pTune .slider').map(el=>{
-  const th=el.querySelector('.thumb'), bar=el.querySelector('i'), out=el.parentElement.querySelector('output'), ch=+el.dataset.ch;
-  const draw=v=>{ const w=el.clientWidth-38; th.style.left=(19+v/255*w)+'px'; bar.style.width=(19+v/255*w)+'px'; out.textContent=Math.round(v); };
-  let on=false;
-  const set=e=>{ const r=el.getBoundingClientRect(); const v=Math.round(clamp((e.clientX-r.left-19)/(r.width-38),0,1)*255); tuning.rgb[ch]=v; draw(v); tuneSend(); };
-  el.addEventListener('pointerdown',e=>{ el.setPointerCapture(e.pointerId); on=true; el.classList.add('active'); set(e); });
-  el.addEventListener('pointermove',e=>{ if(on) set(e); });
-  const end=()=>{ on=false; el.classList.remove('active'); }; el.addEventListener('pointerup',end); el.addEventListener('pointercancel',end);
+const tuneSliders=$$('#pTune .rgbrow.step').map(row=>{
+  const ch=+row.dataset.ch, num=row.querySelector('.num'), bar=row.querySelector('.bar i');
+  const paint=v=>{ bar.style.width=(v/255*100)+'%'; };
+  const draw=v=>{ v=clamp(Math.round(v),0,255); if(document.activeElement!==num) num.value=v; paint(v); };
+  const setV=v=>{ v=clamp(Math.round(v),0,255); tuning.rgb[ch]=v; num.value=v; paint(v); tuneSend(); };
+  // setas: um toque = ±1; manter premido repete, cada vez mais depressa
+  row.querySelectorAll('.stp').forEach(b=>{ const d=+b.dataset.d; let t=0, n=0;
+    const tick=()=>{ n++; setV(tuning.rgb[ch]+d*(n>25?10:n>10?5:1)); t=setTimeout(tick, n>10?45:90); };
+    b.addEventListener('pointerdown',e=>{ e.preventDefault(); num.blur(); n=0; setV(tuning.rgb[ch]+d); t=setTimeout(tick,420); });
+    ['pointerup','pointerleave','pointercancel'].forEach(ev=>b.addEventListener(ev,()=>clearTimeout(t))); });
+  // escrever o número: só dígitos, aplica ao vivo, confirma com Enter ou ao sair
+  num.addEventListener('focus',()=>{ num.placeholder=String(tuning.rgb[ch]); num.value=''; });
+  num.addEventListener('input',()=>{ num.value=num.value.replace(/\D/g,'').slice(0,3);
+    if(num.value!==''){ const v=Math.min(255,+num.value); tuning.rgb[ch]=v; paint(v); tuneSend(); } });
+  num.addEventListener('blur',()=>setV(num.value===''?tuning.rgb[ch]:+num.value));
+  num.addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); num.blur(); }
+    if(e.key==='ArrowUp'||e.key==='ArrowDown'){ e.preventDefault(); setV(tuning.rgb[ch]+(e.key==='ArrowUp'?1:-1)); } });
   return {draw};
 });
 function tuneSend(){ tuning.members.forEach(push); }

@@ -105,7 +105,7 @@ body[data-tab="luzes"] #addBtn{display:grid}
 body[data-tab="ajustes"] #btBtn, body[data-tab="ajustes"] #powerBtn, body[data-tab="efeitos"] #powerBtn{display:grid}
 .power svg{width:22px; height:22px; color:var(--ink-2)}
 .power[aria-pressed="true"]{background:linear-gradient(180deg, rgba(var(--tint-hi),.97), rgba(var(--tint),.95)) !important;
-  box-shadow:inset 0 1px .5px rgba(255,255,255,.8), inset 0 -2px 6px rgba(160,70,0,.25), 0 0 0 5px rgba(var(--tint),.16), 0 10px 26px rgba(var(--tint),.45) !important}
+  box-shadow:inset 0 1px .5px rgba(255,255,255,.8), inset 0 -2px 6px rgba(160,70,0,.25), 0 6px 16px rgba(var(--tint),.35) !important; -webkit-backdrop-filter:none; backdrop-filter:none}
 .power[aria-pressed="true"] svg{color:#fff}
 
 main{position:relative; z-index:1; flex:1; min-height:0; width:100%; max-width:1320px; margin:0 auto}
@@ -118,7 +118,7 @@ main{position:relative; z-index:1; flex:1; min-height:0; width:100%; max-width:1
 
 /* ================= AJUSTES ================= */
 #v-ajustes{display:grid; gap:var(--gap); grid-template-columns:minmax(0,1fr); grid-template-rows:minmax(0,1fr) auto auto; grid-template-areas:"wheel" "palette" "bright"}
-.wheel-zone{grid-area:wheel; min-height:0; min-width:0; overflow:hidden; display:grid; place-items:center}
+.wheel-zone{grid-area:wheel; min-height:0; min-width:0; display:grid; place-items:center}
 .bezel{width:var(--wsz,200px); height:var(--wsz,200px); flex:none; border-radius:50%; padding:clamp(6px, calc(var(--wsz,200px) * .03), 14px); background:var(--g-clear)}
 .bezel::after{z-index:1}
 .wheel{position:relative; width:100%; height:100%; border-radius:50%; touch-action:none; cursor:crosshair;
@@ -177,7 +177,7 @@ main{position:relative; z-index:1; flex:1; min-height:0; width:100%; max-width:1
 .pill svg{width:18px; height:18px}
 
 /* ================= LUZES ================= */
-#v-luzes .scroll{height:100%; overflow-y:auto; overflow-x:hidden; -webkit-overflow-scrolling:touch; scrollbar-width:none; padding:10px 14px 24px; margin:-10px -14px 0;
+#v-luzes .scroll{height:100%; overflow-y:auto; overflow-x:hidden; -webkit-overflow-scrolling:touch; scrollbar-width:none; padding:34px 24px 24px; margin:-34px -24px 0;
   -webkit-mask:linear-gradient(180deg, #000 0, #000 calc(100% - 22px), transparent 100%); mask:linear-gradient(180deg, #000 0, #000 calc(100% - 22px), transparent 100%)}
 #v-luzes .scroll::-webkit-scrollbar{display:none}
 .master{display:flex; align-items:center; gap:14px; padding:14px 16px; border-radius:28px}
@@ -451,7 +451,7 @@ nav.tabs button.hover{transform:scale(1.1)}
 <script>
 'use strict';
 /* ================= Utilidades ================= */
-const VERSION='3.1';
+const VERSION='3.2';
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const css=document.documentElement.style;

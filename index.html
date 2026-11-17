@@ -106,6 +106,8 @@ body[data-tab="ajustes"] #btBtn, body[data-tab="ajustes"] #powerBtn, body[data-t
 .power[aria-pressed="true"]{background:linear-gradient(180deg, rgba(var(--tint-hi),.97), rgba(var(--tint),.95)) !important;
   box-shadow:inset 0 1px .5px rgba(255,255,255,.8), inset 0 -2px 6px rgba(160,70,0,.25), 0 6px 16px rgba(var(--tint),.35) !important; -webkit-backdrop-filter:none; backdrop-filter:none}
 .power[aria-pressed="true"] svg{color:#fff}
+.power[aria-pressed="true"]::before{background:none; -webkit-backdrop-filter:none; backdrop-filter:none}
+.power[aria-pressed="true"]::after{box-shadow:inset 0 1.5px 1px rgba(255,255,255,.7), inset 0 0 0 1px rgba(255,255,255,.25)}
 
 main{position:relative; z-index:1; flex:1; min-height:0; width:100%; max-width:1320px; margin:0 auto}
 .view{height:100%; min-height:0}
@@ -152,6 +154,12 @@ main{position:relative; z-index:1; flex:1; min-height:0; width:100%; max-width:1
 .palette.editing .fav:not(.add)::after{content:""; position:absolute; inset:0; border-radius:50%; background:rgba(0,0,0,.2) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 20h9'/%3E%3Cpath d='M16.5 3.5a2.1 2.1 0 1 1 3 3L7 19l-4 1 1-4Z'/%3E%3C/svg%3E") center/42% no-repeat}
 .palette.editing .white .pen{display:block}
 .palette.editing .fav[aria-current="true"], .palette.editing .white[aria-pressed="true"]{outline-color:transparent}
+.palette.editing .favs{touch-action:none}
+.palette.sorting .fav, .palette.sorting .white{animation:none !important}
+.palette.sorting .fav:not(.dragging){transition:transform .32s cubic-bezier(.3,1.25,.5,1)}
+.fav.dragging{z-index:20; transition:none !important; animation:none !important;
+  box-shadow:inset 0 1.5px 1px rgba(255,255,255,.75), inset 0 0 0 1px rgba(255,255,255,.3), 0 14px 30px rgba(0,0,0,.28), 0 0 0 .5px rgba(0,0,0,.08)}
+.fav.dragging::after{opacity:0}
 @keyframes jiggle{from{transform:rotate(-2.2deg)} to{transform:rotate(2.2deg)}}
 .hbar{grid-area:bright; position:relative; height:56px; border-radius:28px; overflow:hidden; touch-action:none; cursor:ew-resize; background:var(--g-clear)}
 .hbar .fill{position:absolute; inset:0; z-index:0; transform-origin:0 50%; will-change:transform;
@@ -450,7 +458,7 @@ nav.tabs button.hover{transform:scale(1.1)}
 <script>
 'use strict';
 /* ================= Utilidades ================= */
-const VERSION='3.3';
+const VERSION='3.4';
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const css=document.documentElement.style;
@@ -819,8 +827,9 @@ function addFav(){ const st=TS();
 function renderFavs(){
   const box=$('#favs'); box.innerHTML='';
   store.favs.forEach((f,i)=>{ const b=document.createElement('button'); b.className='fav'; b.dataset.i=i; b.style.setProperty('--c', hsv(f.h,f.s).join(','));
-    b.setAttribute('aria-label',(editing?'Afinar ':'')+colourName(f.h,f.s)); longPress(b,()=>openTune('fav',i));
-    b.onclick=()=>{ if(b._long) return; editing ? openTune('fav',i) : useFav(i); }; box.appendChild(b); });
+    b.setAttribute('aria-label',(editing?'Afinar ou arrastar ':'')+colourName(f.h,f.s));
+    if(editing) sortable(b,i); else longPress(b,()=>openTune('fav',i));
+    b.onclick=()=>{ if(b._long||b._dragged) return; editing ? openTune('fav',i) : useFav(i); }; box.appendChild(b); });
   if(store.favs.length<MAX_FAVS){ const a=document.createElement('button'); a.className='fav add'; a.innerHTML=ICON.plus; a.setAttribute('aria-label','Guardar a cor atual nas favoritas'); a.onclick=addFav; box.appendChild(a); }
   const w=$('#whites'); w.innerHTML='';
   WHITES.forEach((wh,i)=>{ const b=document.createElement('button'); b.className='white'; b.style.setProperty('--c',wh.show);
@@ -829,7 +838,44 @@ function renderFavs(){
   palette.classList.toggle('editing',editing); $('#editBtn').textContent= editing?'OK':'Editar';
   renderControls();
 }
-$('#editBtn').onclick=()=>{ editing=!editing; renderFavs(); if(editing) toast('Toca numa cor ou num branco para o afinar.'); };
+$('#editBtn').onclick=()=>{ editing=!editing; renderFavs(); if(editing) toast('Toca para afinar. Arrasta uma cor para a mudar de sítio.',3400); };
+
+/* Reordenar: segurar e arrastar uma favorita; as outras afastam-se com mola */
+function sortable(el,from){
+  let st=null;
+  el.addEventListener('pointerdown',e=>{
+    const cells=$$('#favs .fav[data-i]').map(c=>{ const r=c.getBoundingClientRect(); return {el:c, x:r.left+r.width/2, y:r.top+r.height/2}; });
+    st={x0:e.clientX, y0:e.clientY, cells, to:from, drag:false, id:e.pointerId}; el._dragged=false;
+  });
+  el.addEventListener('pointermove',e=>{
+    if(!st) return; const dx=e.clientX-st.x0, dy=e.clientY-st.y0;
+    if(!st.drag){ if(Math.hypot(dx,dy)<8) return; st.drag=true; el._dragged=true; el.setPointerCapture(st.id); el.classList.add('dragging'); palette.classList.add('sorting'); }
+    el.style.transform=`translate(${dx}px,${dy}px) scale(1.18)`;
+    // posição de destino: a célula mais próxima do dedo
+    let to=0, best=1e9; st.cells.forEach((c,k)=>{ const d=(c.x-e.clientX)**2+(c.y-e.clientY)**2; if(d<best){best=d; to=k;} });
+    if(to!==st.to){ st.to=to;
+      const order=st.cells.map((_,k)=>k); order.splice(from,1); order.splice(to,0,from);
+      order.forEach((old,pos)=>{ if(old===from) return; const c=st.cells[old], t=st.cells[pos]; c.el.style.transform=`translate(${t.x-c.x}px,${t.y-c.y}px)`; });
+    }
+  });
+  const end=()=>{
+    if(!st) return; const s0=st; st=null;
+    if(!s0.drag) return;
+    const order=s0.cells.map((_,k)=>k); order.splice(from,1); order.splice(s0.to,0,from);
+    const moved=s0.to!==from;
+    if(moved){
+      store.favs=order.map(i=>store.favs[i]);
+      const map={}; order.forEach((old,pos)=>map[old]=pos);
+      const fix=x=>{ if(x.fav!=null && map[x.fav]!=null) x.fav=map[x.fav]; };
+      store.devices.forEach(d=>fix(d.state)); store.groups.forEach(g=>fix(g.state)); save();
+    }
+    // a cor arrastada assenta no sítio novo com mola, depois redesenha-se tudo
+    const t=s0.cells[s0.to], c=s0.cells[from]; el.classList.remove('dragging'); el.style.transition='transform .3s cubic-bezier(.3,1.3,.5,1)';
+    el.style.transform=`translate(${t.x-c.x}px,${t.y-c.y}px)`;
+    setTimeout(()=>{ palette.classList.remove('sorting'); renderFavs(); },300);
+  };
+  el.addEventListener('pointerup',end); el.addEventListener('pointercancel',end);
+}
 $('#stFav').onclick=addFav;
 $('#powerBtn').onclick=()=>{ const st=TS(); st.on=!st.on; commit(); };
 

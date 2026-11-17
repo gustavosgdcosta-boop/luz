@@ -462,7 +462,7 @@ nav.tabs button.hover{transform:scale(1.1)}
 <script>
 'use strict';
 /* ================= Utilidades ================= */
-const VERSION='3.12';
+const VERSION='3.13';
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const css=document.documentElement.style;
@@ -1059,6 +1059,15 @@ function sizeWheel(){
   if(!w||h<=0) return; css.setProperty('--wsz', Math.floor(Math.min(w, h))+'px'); placeKnob(false); }
 new ResizeObserver(sizeWheel).observe(zone);
 addEventListener('resize',sizeWheel);
+
+/* ================= Atualização automática =================
+   O GitHub Pages deixa o navegador guardar a página 10 minutos. Ao abrir a app (e ao voltar a ela),
+   pergunta-se ao site, sem cache, qual é a versão; se for mais nova, recarrega-se sozinha. */
+async function checkUpdate(){
+  try{ const r=await fetch(location.pathname+'?t='+Date.now(),{cache:'no-store'}); const t=await r.text();
+    const m=t.match(/const VERSION='([^']+)'/); if(m && m[1]!==VERSION){ save(); location.replace(location.pathname+'?v='+m[1]); } }catch(e){} }
+document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible') checkUpdate(); });
+setTimeout(checkUpdate,1500);
 
 /* ================= Arranque ================= */
 load();

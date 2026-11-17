@@ -301,10 +301,6 @@ nav.tabs button.hover{transform:scale(1.1)}
 .ck[aria-checked="true"] .box{background:rgb(var(--tint)); box-shadow:none} .ck[aria-checked="true"] .box svg{opacity:1; transform:none}
 .toast{position:fixed; z-index:40; left:50%; top:calc(env(safe-area-inset-top) + 10px); width:max-content; max-width:calc(100% - 2 * var(--pad)); padding:12px 18px; border-radius:24px; font:500 15px/1.3 var(--font); text-align:center; transform:translate(-50%, -170%); background:var(--g-strong); pointer-events:none}
 
-.reconnect{--press:1.02; position:relative; z-index:9; flex:none; display:flex; align-items:center; justify-content:center; gap:10px; width:100%; max-width:560px; margin:10px auto 0;
-  height:44px; padding:0 18px; border-radius:22px; font:600 16px var(--font); white-space:nowrap}
-.reconnect svg{width:20px; height:20px; flex:none}
-.reconnect span{overflow:hidden; text-overflow:ellipsis}
 /* ================= Disposições ================= */
 @media (max-width:699px){
   body[data-tab="ajustes"] header{margin-bottom:5px}
@@ -359,7 +355,6 @@ nav.tabs button.hover{transform:scale(1.1)}
 <body data-tab="ajustes">
 <div id="ambient" aria-hidden="true"><i class="b1"></i><i class="b2"></i><i class="b3"></i></div>
 
-<button class="reconnect glass tinted gi" id="reconnect" hidden></button>
 <header>
   <button class="title-btn" id="titleBtn" aria-haspopup="menu"><h1 id="title">Luz</h1>
     <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></button>
@@ -467,7 +462,7 @@ nav.tabs button.hover{transform:scale(1.1)}
 <script>
 'use strict';
 /* ================= Utilidades ================= */
-const VERSION='3.15';
+const VERSION='3.16';
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const css=document.documentElement.style;
@@ -618,22 +613,15 @@ function explain(e){
   if(n==='SecurityError') return 'O Bluefy não tem autorização para usar o Bluetooth.';
   return 'Não consegui ligar'+(m?': '+m:'')+'.';
 }
-async function choose(all,exactName){
+async function choose(all){
   if(!navigator.bluetooth){ toast('Abre a app no Bluefy para usar o Bluetooth.',3600); return null; }
-  const opts= all ? {acceptAllDevices:true, optionalServices:[SVC]}
-    : exactName ? {filters:[{name:exactName}], optionalServices:[SVC]}
-    : {filters:[{namePrefix:'ELK'},{namePrefix:'MELK'},{namePrefix:'LEDBLE'}], optionalServices:[SVC]};
-  try{ return await navigator.bluetooth.requestDevice(opts); }
+  try{ return await navigator.bluetooth.requestDevice(all ? {acceptAllDevices:true, optionalServices:[SVC]}
+      : {filters:[{namePrefix:'ELK'},{namePrefix:'MELK'},{namePrefix:'LEDBLE'}], optionalServices:[SVC]}); }
   catch(e){ const m=explain(e); if(m) toast(m,3800); else if(!e||!e.name) toast('Se a fita não aparecer, usa “Mostrar todos os aparelhos”.',4200); return null; }
 }
 const matchBt=bt=>store.devices.find(d=>d.btId&&d.btId===bt.id) || store.devices.find(d=>!d.btId&&d.btName===bt.name);
 function bind(d,bt){ d.btId=bt.id; if(bt.name) d.btName=bt.name; C(d.id).bt=bt; save(); }
-async function connectDevice(id,all){
-  const known=dev(id), c=C(id);
-  // se o navegador ainda tem o aparelho desta sessão, volta a ligar sem perguntar nada
-  if(!all && c.bt){ attach(id); return; }
-  const bt=await choose(all, !all && known && known.btName ? known.btName : null); if(!bt) return;
-  const d=matchBt(bt)||known; if(!d) return; bind(d,bt); attach(d.id); }
+async function connectDevice(id,all){ const bt=await choose(all); if(!bt) return; const d=matchBt(bt)||dev(id); if(!d) return; bind(d,bt); attach(d.id); }
 function niceName(){ const n=store.devices.filter(d=>/^Fita de LEDs/.test(d.name)).length; return n ? 'Fita de LEDs '+(n+1) : 'Fita de LEDs'; }
 async function addDevice(all){
   const bt=await choose(all); if(!bt) return;
@@ -661,7 +649,7 @@ function onDisc(id){
   else toast('A ligação a '+(dev(id)?.name||'fita')+' caiu.',3600);
 }
 function disconnect(id){ const c=C(id); c.manual=true; try{ c.bt?.gatt?.disconnect(); }catch(e){} c.ch=null; setStatus(id,'off'); }
-function setStatus(id,s){ C(id).status=s; renderStatus(); renderLuzes(); if(typeof renderReconnect==='function') renderReconnect(); }
+function setStatus(id,s){ C(id).status=s; renderStatus(); renderLuzes(); }
 const statusTxt=id=>({on:'Ligada', connecting:'A ligar…', off:'Sem ligação'})[C(id).status];
 
 /* ================= Efeitos (correm na própria fita) ================= */
@@ -984,7 +972,7 @@ $('#btBtn').onclick=e=>{ const ms=membersOf(target()), items=[{label:'Ligação'
   ms.forEach(d=>{ const s=C(d.id).status; items.push({text:d.name, sub: s==='on'?'Ligada · toca para desligar' : s==='connecting'?'A ligar…':'Sem ligação · toca para ligar', dot:s==='on'?'on':s==='connecting'?'busy':'',
     onClick:()=> s==='on' ? disconnect(d.id) : connectDevice(d.id,false)}); });
   if(!ms.length) items.push({text:'Sem aparelhos', sub:'Adiciona um no separador Luzes', icon:ICON.grid, onClick:()=>select('luzes')});
-  items.push({sep:true},{text:'Mostrar todos os aparelhos', sub:'Se a fita não aparecer', icon:ICON.list, onClick:()=>{ const d=ms.find(m=>C(m.id).status!=='on')||ms[0]; d ? connectDevice(d.id,true) : addDevice(true); }},{foot:(autoSupported?'Ligação automática: disponível':'Ligação automática: o Bluefy não permite — usa o botão de ligar')+' · versão '+VERSION});
+  items.push({sep:true},{text:'Mostrar todos os aparelhos', sub:'Se a fita não aparecer', icon:ICON.list, onClick:()=>{ const d=ms.find(m=>C(m.id).status!=='on')||ms[0]; d ? connectDevice(d.id,true) : addDevice(true); }},{foot:'Luz · versão '+VERSION});
   openMenu(e.currentTarget,items); };
 
 /* ================= Desenho do estado ================= */
@@ -1072,26 +1060,6 @@ function sizeWheel(){
 new ResizeObserver(sizeWheel).observe(zone);
 addEventListener('resize',sizeWheel);
 
-/* ================= Voltar a ligar ao abrir =================
-   Por segurança, o navegador só deixa ligar a um aparelho Bluetooth depois de um toque.
-   Se o Bluefy tiver getDevices(), liga sozinho; senão, mostra um botão que procura só a luz certa. */
-let autoSupported=false;
-const recBtn=$('#reconnect');
-function pendingDevices(){ return store.devices.filter(d=>d.btName && C(d.id).status==='off' && !C(d.id).manual); }
-function renderReconnect(){
-  const left=pendingDevices();
-  if(!left.length || document.body.dataset.tab==='horarios'){ recBtn.hidden=true; return; }
-  const d=left[0]; recBtn.hidden=false;
-  recBtn.innerHTML=ICON.bt+'<span></span>'; recBtn.querySelector('span').textContent= left.length>1 ? 'Ligar à '+d.name+' (+'+(left.length-1)+')' : 'Ligar à '+d.name;
-  recBtn.onclick=()=>connectDevice(d.id,false);
-}
-async function autoReconnect(){
-  if(!navigator.bluetooth) return;
-  try{ if(navigator.bluetooth.getDevices){ autoSupported=true; const list=await navigator.bluetooth.getDevices();
-    for(const bt of list){ const d=matchBt(bt); if(d){ bind(d,bt); attach(d.id,true); } } } }catch(e){ autoSupported=false; }
-  setTimeout(renderReconnect, 900);
-}
-
 /* ================= Atualização automática =================
    O GitHub Pages deixa o navegador guardar a página 10 minutos. Ao abrir a app (e ao voltar a ela),
    pergunta-se ao site, sem cache, qual é a versão; se for mais nova, recarrega-se sozinha. */
@@ -1107,7 +1075,8 @@ renderFxGrid();
 select(store.ui.tab && $('#v-'+store.ui.tab) ? store.ui.tab : 'ajustes', false);
 renderAll(false);
 requestAnimationFrame(()=>{ layoutVars(); sizeWheel(); placeLens(false); brightBar.sync(false); speedBar.sync(false); });
-autoReconnect();
+(async()=>{ try{ if(navigator.bluetooth?.getDevices){ const list=await navigator.bluetooth.getDevices();
+  for(const bt of list){ const d=matchBt(bt); if(d){ bind(d,bt); attach(d.id,true); } } } }catch(e){} })();
 if(!navigator.bluetooth) setTimeout(()=>toast('Abre a app no Bluefy para usar o Bluetooth.',4000),700);
 </script>
 </body>

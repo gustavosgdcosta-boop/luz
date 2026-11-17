@@ -119,7 +119,7 @@ main{position:relative; z-index:1; flex:1; min-height:0; width:100%; max-width:1
 
 /* ================= AJUSTES ================= */
 #v-ajustes{display:grid; gap:var(--gap); grid-template-columns:minmax(0,1fr); grid-template-rows:minmax(0,1fr) auto auto; grid-template-areas:"wheel" "palette" "bright"}
-.wheel-zone{grid-area:wheel; min-height:0; min-width:0; display:grid; place-items:center}
+.wheel-zone{grid-area:wheel; min-height:0; min-width:0; display:grid; place-items:center; box-sizing:border-box}
 .bezel{width:var(--wsz,200px); height:var(--wsz,200px); flex:none; border-radius:50%; padding:clamp(6px, calc(var(--wsz,200px) * .03), 14px); background:var(--g-clear)}
 .bezel::after{z-index:1}
 .wheel{position:relative; width:100%; height:100%; border-radius:50%; touch-action:none; cursor:crosshair;
@@ -458,7 +458,7 @@ nav.tabs button.hover{transform:scale(1.1)}
 <script>
 'use strict';
 /* ================= Utilidades ================= */
-const VERSION='3.10';
+const VERSION='3.11';
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const css=document.documentElement.style;
@@ -1050,7 +1050,18 @@ addEventListener('resize',()=>{ layoutVars(); placeLens(false); });
 
 /* Roda: o maior círculo que cabe na sua zona (calculado aqui, funciona em qualquer navegador) */
 const zone=$('.wheel-zone');
-function sizeWheel(){ const r=zone.getBoundingClientRect(); if(!r.width||!r.height) return; css.setProperty('--wsz', Math.floor(Math.min(r.width, r.height))+'px'); placeKnob(false); }
+function sizeWheel(){
+  zone.style.marginTop=''; zone.style.paddingBottom='';
+  // iPhone: espaço igual por cima (a partir da linha das letras do título) e por baixo (até às Favoritas)
+  if(!tablet.matches){
+    const t=$('#title'), rg=document.createRange(); rg.selectNodeContents(t);
+    const fs=parseFloat(getComputedStyle(t).fontSize), base=rg.getBoundingClientRect().bottom - fs*.21;   // fim das letras (sem a perna)
+    const z0=zone.getBoundingClientRect(), pal=$('#palette').getBoundingClientRect();
+    const total=(z0.top-base)+(pal.top-z0.bottom), each=total/2;   // espaço a repartir por igual
+    const shift=(z0.top-base)-each;                                 // quanto subir a roda
+    zone.style.marginTop=(-shift)+'px'; zone.style.paddingBottom=shift+'px'; }
+  const r=zone.getBoundingClientRect(), pb=parseFloat(zone.style.paddingBottom)||0, h=r.height-pb; if(!r.width||h<=0) return;
+  css.setProperty('--wsz', Math.floor(Math.min(r.width, h))+'px'); placeKnob(false); }
 new ResizeObserver(sizeWheel).observe(zone);
 addEventListener('resize',sizeWheel);
 

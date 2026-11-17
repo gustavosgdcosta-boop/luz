@@ -359,11 +359,23 @@ body[data-conn="connecting"] .circle .badge{background:rgb(var(--tint)); animati
 .sh-btns button{height:50px; border-radius:25px; font:600 17px var(--font); transition:transform .25s cubic-bezier(.3,1.4,.5,1)}
 .sh-btns button:active{transform:scale(.96)}
 .sh-btns .ghost{background:var(--fill-2)}
+.sh-btns.three{grid-template-columns:1fr 1fr 1.4fr}
+.sh-btns .danger{background:rgba(255,59,48,.12); color:#ff3b30}
+.sheet[data-mode="fav"] #wseg{display:none}
+.sh-swatch{display:none; align-items:center; gap:12px; margin-bottom:16px}
+.sheet[data-mode="fav"] .sh-swatch{display:flex}
+.sh-swatch i{flex:none; width:44px; height:44px; border-radius:50%; box-shadow:inset 0 0 0 .5px rgba(0,0,0,.15)}
+.sh-swatch span{font-size:15px; color:var(--ink-2)}
+.edit-btn{font:500 17px var(--font); color:rgb(var(--tint)); padding:4px 0 4px 12px}
+.favs.editing .fav:not(.add){animation:jiggle .32s ease-in-out infinite alternate}
+.favs.editing .fav:not(.add)::before{content:""; position:absolute; inset:0; border-radius:50%; background:rgba(0,0,0,.18) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 20h9'/%3E%3Cpath d='M16.5 3.5a2.1 2.1 0 1 1 3 3L7 19l-4 1 1-4Z'/%3E%3C/svg%3E") center/42% no-repeat}
+.favs.editing .fav:nth-child(even){animation-delay:-.16s}
+@keyframes jiggle{from{transform:rotate(-2deg)} to{transform:rotate(2deg)}}
 /* Avisos curtos */
 .toast{position:fixed; z-index:40; left:50%; width:max-content; top:calc(env(safe-area-inset-top) + 12px); max-width:calc(100% - 2 * var(--pad)); padding:12px 18px; border-radius:22px;
   font:500 15px/1.3 var(--font); text-align:center; transform:translate(-50%, -160%); background:var(--g-bg-strong); pointer-events:none}
 @media (prefers-reduced-motion: reduce){
-  #ambient{transition:none} .fxc .dots i, .fxc .pv{animation:none !important}
+  #ambient{transition:none} .fxc .dots i, .fxc .pv, .favs.editing .fav{animation:none !important}
   .switch::after, .slider .thumb, .white .chk, .fxc .chk{transition:none}
 }
 @media (prefers-reduced-transparency: reduce){
@@ -421,7 +433,7 @@ body[data-conn="connecting"] .circle .badge{background:rgb(var(--tint)); animati
 
     <div class="colors">
       <div class="module glass favs-m">
-        <div class="mh"><h2>Favoritas</h2><span class="aside" id="favcount"></span></div>
+        <div class="mh"><h2>Favoritas</h2><button class="edit-btn" id="favEdit">Editar</button></div>
         <div class="favs" id="favs"></div>
       </div>
       <div class="module glass whites-m">
@@ -485,16 +497,17 @@ body[data-conn="connecting"] .circle .badge{background:rgb(var(--tint)); animati
 <div class="sheet-scrim" id="shScrim"></div>
 <div class="sheet glass" id="sheet" role="dialog" aria-modal="true" aria-label="Afinar brancos">
   <div class="grab"></div>
-  <div class="sh-head"><h2>Afinar brancos</h2>
+  <div class="sh-head"><h2 id="shTitle">Afinar brancos</h2>
     <button class="circle glass" id="shClose" aria-label="Fechar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>
-  <p class="sh-hint">A fita muda ao vivo. Ajusta até o branco ficar como queres.</p>
+  <p class="sh-hint" id="shHint">A fita muda ao vivo. Ajusta até o branco ficar como queres.</p>
+  <div class="sh-swatch"><i id="shSw"></i><span>Esta é a cor pretendida. As barras são o que a fita recebe.</span></div>
   <div class="seg" id="wseg" role="radiogroup" aria-label="Branco">
     <div class="slens"></div><button role="radio" aria-checked="true">Quente</button><button role="radio" aria-checked="false">Neutra</button><button role="radio" aria-checked="false">Fria</button>
   </div>
   <div class="rgbrow"><b>R</b><div class="slider" data-ch="0" style="--c:#ff3b30"><div class="track"><i></i></div><div class="thumb"></div></div><output>255</output></div>
   <div class="rgbrow"><b>G</b><div class="slider" data-ch="1" style="--c:#34c759"><div class="track"><i></i></div><div class="thumb"></div></div><output>110</output></div>
   <div class="rgbrow"><b>B</b><div class="slider" data-ch="2" style="--c:#007aff"><div class="track"><i></i></div><div class="thumb"></div></div><output>20</output></div>
-  <div class="sh-btns"><button class="ghost" id="shReset">Repor</button><button class="glass tinted" id="shSave">Guardar</button></div>
+  <div class="sh-btns" id="shBtns"><button class="danger" id="shDel" hidden>Apagar</button><button class="ghost" id="shReset">Repor</button><button class="glass tinted" id="shSave">Guardar</button></div>
 </div>
 <div class="toast glass" id="toast" role="status" aria-live="polite"></div>
 
@@ -541,7 +554,14 @@ const CHECK='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-w
    ============================================================ */
 const css=document.documentElement.style;
 const S={ on:true, h:28, s:.78, b:.8, white:null };
-const favs=[[0,1],[16,.9],[28,.78],[48,.95],[85,.75],[130,.8],[165,.8],[190,.85],[215,1],[275,.7],[330,.75]];
+const favs=[[0,1],[16,.9],[28,.78],[48,.95],[85,.75],[130,.8],[165,.8],[190,.85],[215,1],[275,.7],[330,.75]].map(([h,s])=>({h,s,led:null}));
+S.fav=null;
+/* Correção para fitas RGB baratas: o verde e o azul brilham muito mais do que o vermelho
+   e os LEDs não são lineares. Gama 2.2 + menos verde/azul, depois volta a pôr o canal
+   mais forte no máximo (o brilho é tratado à parte, pelo comando de brilho). */
+const GAIN=[1,.62,.48];
+function ledFix(rgb){ const c=rgb.map((v,i)=>Math.pow(v/255,2.2)*GAIN[i]); const m=Math.max(...c), M=Math.max(...rgb)/255;
+  return m ? c.map(v=>Math.round(v/m*M*255)) : [0,0,0]; }
 const hsv=(h,s)=>{ const f=n=>{ const k=(n+h/60)%6; return 1-s*Math.max(0,Math.min(k,4-k,1)); }; return [f(5),f(3),f(1)].map(x=>Math.round(x*255)); };
 const hex=h=>[1,3,5].map(i=>parseInt(h.substr(i,2),16));
 const toHS=(r,g,b)=>{ const mx=Math.max(r,g,b), mn=Math.min(r,g,b), s=mx?(mx-mn)/mx:0; let h=0;
@@ -554,7 +574,7 @@ function paint(){
   css.setProperty('--glow', S.on ? (.45+.55*S.b).toFixed(3) : '0.12');
   $('#power').setAttribute('aria-pressed', S.on);
   $('#bstate').textContent = S.on ? 'Ligada' : 'Desligada';
-  $$('.fav[data-c]').forEach(f=>f.setAttribute('aria-current', S.white==null && f.dataset.c===`${r},${g},${b}`));
+  $$('.fav[data-i]').forEach(f=>f.setAttribute('aria-current', !editing && S.white==null && S.fav===+f.dataset.i));
   whites.forEach((w,i)=>w.setAttribute('aria-pressed', S.white===i));
   send();
 }
@@ -578,20 +598,28 @@ async function pump(){
   catch(e){ console.warn('Falha ao enviar', e); }
   BLE.busy=false; setTimeout(pump, 10);
 }
-let calib=[[255,110,20],[255,170,70],[255,215,150]];
+const WHITE_DEF=[[255,72,4],[255,104,18],[255,140,46]];
+let calib=WHITE_DEF.map(c=>[...c]);
 let tuning=null;   // enquanto a folha de afinação está aberta, a fita mostra o branco a afinar
-function currentRGB(){ return tuning ? tuning.rgb : S.white!=null ? calib[S.white] : hsv(S.h,S.s); }
+function currentRGB(){ if(tuning) return tuning.rgb; if(S.white!=null) return calib[S.white];
+  const f=S.fav!=null&&favs[S.fav]; if(f&&f.led) return f.led; return ledFix(hsv(S.h,S.s)); }
 function send(){
   if(!S.on && !tuning){ queue('power',false); save(); return; }
   queue('power',true); queue('color',currentRGB()); queue('bright',Math.max(1,Math.round(S.b*100))); save();
 }
 
 /* Guardar estado no aparelho */
-const KEY='luz.v1';
+const KEY='luz.v2';
 let saveT=0;
-function save(){ clearTimeout(saveT); saveT=setTimeout(()=>{ try{ localStorage.setItem(KEY, JSON.stringify({S:{on:S.on,h:S.h,s:S.s,b:S.b,white:S.white}, favs, calib})); }catch(e){} },300); }
-function load(){ try{ const d=JSON.parse(localStorage.getItem(KEY)||'null'); if(!d) return;
-  if(d.S) Object.assign(S,d.S); if(Array.isArray(d.favs)&&d.favs.length) favs.splice(0,favs.length,...d.favs); if(Array.isArray(d.calib)&&d.calib.length===3) calib=d.calib; }catch(e){} }
+function save(){ clearTimeout(saveT); saveT=setTimeout(()=>{ try{ localStorage.setItem(KEY, JSON.stringify({S:{on:S.on,h:S.h,s:S.s,b:S.b,white:S.white,fav:S.fav}, favs, calib})); }catch(e){} },300); }
+function load(){ try{
+  let d=JSON.parse(localStorage.getItem(KEY)||'null');
+  if(!d){ d=JSON.parse(localStorage.getItem('luz.v1')||'null'); if(d) delete d.calib; }   // v1: brancos antigos eram frios demais
+  if(!d) return;
+  if(d.S) Object.assign(S,d.S);
+  if(Array.isArray(d.favs)&&d.favs.length) favs.splice(0,favs.length,...d.favs.map(f=>Array.isArray(f)?{h:f[0],s:f[1],led:null}:f));
+  if(Array.isArray(d.calib)&&d.calib.length===3) calib=d.calib;
+  if(S.fav!=null && !favs[S.fav]) S.fav=null; }catch(e){} }
 
 /* ============================================================
    Roda de cor — arrasto 1:1, molas X/Y independentes,
@@ -603,7 +631,7 @@ const drawK=()=>{ knob.style.transform=`translate3d(${kx.x}px,${ky.x}px,0) scale
 const geo=()=>{ const r=wheel.getBoundingClientRect(); return {R:r.width/2, l:r.left, t:r.top}; };
 const posFor=(h,s)=>{ const g=geo(), a=h*Math.PI/180; return [g.R+Math.cos(a)*s*g.R, g.R+Math.sin(a)*s*g.R]; };
 function placeK(anim,opt){ const [x,y]=posFor(S.h,S.s); if(anim){ kx.to(x,opt); ky.to(y,opt); } else { kx.jump(x); ky.jump(y); } }
-function pick(px,py){ const g=geo(), dx=px-g.l-g.R, dy=py-g.t-g.R; S.h=(Math.atan2(dy,dx)*180/Math.PI+360)%360; S.s=Math.min(1,Math.hypot(dx,dy)/g.R); S.white=null; }
+function pick(px,py){ const g=geo(), dx=px-g.l-g.R, dy=py-g.t-g.R; S.h=(Math.atan2(dy,dx)*180/Math.PI+360)%360; S.s=Math.min(1,Math.hypot(dx,dy)/g.R); S.white=null; S.fav=null; }
 let wd=false;
 wheel.addEventListener('pointerdown',e=>{ wheel.setPointerCapture(e.pointerId); wd=true; pick(e.clientX,e.clientY); S.on=true;
   placeK(true,{damping:1,response:.28}); ks.to(1.35,{damping:.65,response:.3}); paint(); });
@@ -645,17 +673,24 @@ $('#power').addEventListener('click',()=>{ S.on=!S.on; paint(); shown.cb(shown.x
    Favoritas e brancos
    ============================================================ */
 
-function renderFavs(){ const box=$('#favs'); box.innerHTML='';
-  favs.slice(-11).forEach(([h,s])=>{ const [r,g,b]=hsv(h,s), el=document.createElement('button'); el.className='fav';
-    el.style.background=`rgb(${r},${g},${b})`; el.dataset.c=`${r},${g},${b}`; el.setAttribute('aria-label','Cor favorita');
-    el.onclick=()=>{ S.h=h; S.s=s; S.white=null; S.on=true; placeK(true,{damping:1,response:.45}); paint(); shown.cb(shown.x); };
+let editing=false;
+function useFav(i){ const f=favs[i]; S.h=f.h; S.s=f.s; S.fav=i; S.white=null; S.on=true; placeK(true,{damping:1,response:.45}); paint(); shown.cb(shown.x); }
+function renderFavs(){ const box=$('#favs'); box.innerHTML=''; box.classList.toggle('editing',editing);
+  favs.forEach((f,i)=>{ const [r,g,b]=hsv(f.h,f.s), el=document.createElement('button'); el.className='fav';
+    el.style.background=`rgb(${r},${g},${b})`; el.dataset.i=i; el.setAttribute('aria-label', editing?'Editar cor favorita':'Cor favorita');
+    let lp=0, long=false;
+    el.addEventListener('pointerdown',()=>{ long=false; lp=setTimeout(()=>{ long=true; openSheet('fav',i); },520); });
+    ['pointerup','pointerleave','pointercancel'].forEach(t=>el.addEventListener(t,()=>clearTimeout(lp)));
+    el.onclick=()=>{ if(long) return; editing ? openSheet('fav',i) : useFav(i); };
     box.appendChild(el); });
-  const add=document.createElement('button'); add.className='fav add'; add.setAttribute('aria-label','Guardar a cor atual');
-  add.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>';
-  add.onclick=()=>{ if(S.white==null){ favs.push([S.h,S.s]); renderFavs(); paint(); } };
-  box.appendChild(add); $('#favcount').textContent=favs.length+' cores'; }
+  if(favs.length<11){ const add=document.createElement('button'); add.className='fav add'; add.setAttribute('aria-label','Guardar a cor atual');
+    add.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>';
+    add.onclick=()=>{ if(S.white!=null) return; favs.push({h:S.h,s:S.s,led:null}); S.fav=favs.length-1; renderFavs(); paint(); toast('Cor guardada nas favoritas'); };
+    box.appendChild(add); }
+  $('#favEdit').textContent= editing ? 'OK' : 'Editar'; }
+$('#favEdit').onclick=()=>{ editing=!editing; renderFavs(); paint(); };
 renderFavs();
-whites.forEach((w,i)=>w.onclick=()=>{ const [h,s]=toHS(...hex(w.dataset.show)); S.h=h; S.s=s; S.white=i; S.on=true; placeK(true); paint(); shown.cb(shown.x); });
+whites.forEach((w,i)=>w.onclick=()=>{ const [h,s]=toHS(...hex(w.dataset.show)); S.h=h; S.s=s; S.white=i; S.fav=null; S.on=true; placeK(true); paint(); shown.cb(shown.x); });
 
 /* ============================================================
    Efeitos
@@ -712,7 +747,7 @@ $$('.switch').forEach(s=>s.onclick=()=>s.setAttribute('aria-checked', s.getAttri
   $('#miConnect').onclick=()=>{ set(false); connect(false); };
   $('#miAll').onclick=()=>{ set(false); connect(true); };
   $('#miDisc').onclick=()=>{ set(false); disconnect(); };
-  $('#miTune').onclick=()=>{ set(false); openSheet(); };
+  $('#miTune').onclick=()=>{ set(false); openSheet('white'); };
   draw(); })();
 
 /* ============================================================
@@ -789,14 +824,26 @@ const rgbSliders=[...sheet.querySelectorAll('.slider')].map(el=>{
 const wseg=$('#wseg'), wlens=wseg.querySelector('.slens'), wbtns=[...wseg.querySelectorAll('button')];
 const wl=new Spring(0,{damping:.85,response:.32}); let wlw=0; wl.cb=x=>{ wlens.style.transform=`translateX(${x}px)`; wlens.style.width=wlw+'px'; };
 function pickWhite(i,anim){ wbtns.forEach((b,j)=>b.setAttribute('aria-checked',j===i)); const b=wbtns[i]; wlw=b.offsetWidth; anim?wl.to(b.offsetLeft):wl.jump(b.offsetLeft);
-  tuning={i, rgb:[...calib[i]]}; rgbSliders.forEach((s,k)=>s.draw(tuning.rgb[k])); send(); }
+  tuning={mode:'white', i, rgb:[...calib[i]]}; rgbSliders.forEach((s,k)=>s.draw(tuning.rgb[k])); send(); }
+function favAuto(i){ return ledFix(hsv(favs[i].h,favs[i].s)); }
 wbtns.forEach((b,i)=>b.onclick=()=>pickWhite(i,true));
-function openSheet(){ shScrim.classList.add('on'); shY.to(0,{damping:.86,response:.42}); shO.to(1);
-  requestAnimationFrame(()=>pickWhite(S.white!=null?S.white:0,false)); }
+function openSheet(mode='white', i){
+  const fav=mode==='fav'; sheet.dataset.mode=mode;
+  $('#shTitle').textContent= fav ? 'Afinar cor' : 'Afinar brancos';
+  $('#shHint').textContent= fav ? 'A fita muda ao vivo. Ajusta até a cor na fita ficar igual à do ecrã.' : 'A fita muda ao vivo. Ajusta até o branco ficar como queres.';
+  $('#shDel').hidden=!fav; $('#shBtns').classList.toggle('three',fav);
+  shScrim.classList.add('on'); shY.to(0,{damping:.86,response:.42}); shO.to(1);
+  requestAnimationFrame(()=>{
+    if(fav){ const f=favs[i], [r,g,b]=hsv(f.h,f.s); $('#shSw').style.background=`rgb(${r},${g},${b})`;
+      tuning={mode:'fav', i, rgb:[...(f.led||favAuto(i))]}; rgbSliders.forEach((s,k)=>s.draw(tuning.rgb[k])); send(); }
+    else pickWhite(S.white!=null?S.white:0,false); }); }
 function closeSheet(){ tuning=null; shScrim.classList.remove('on'); shY.to(1.2,{damping:1,response:.34}); shO.to(0); send(); }
 $('#shClose').onclick=closeSheet; shScrim.addEventListener('pointerdown',closeSheet);
-$('#shReset').onclick=()=>{ const def=[[255,110,20],[255,170,70],[255,215,150]][tuning.i]; tuning.rgb=[...def]; rgbSliders.forEach((s,k)=>s.draw(def[k])); send(); };
-$('#shSave').onclick=()=>{ calib[tuning.i]=[...tuning.rgb]; S.white=tuning.i; S.on=true; const i=tuning.i; tuning=null;
+$('#shReset').onclick=()=>{ const def= tuning.mode==='fav' ? favAuto(tuning.i) : WHITE_DEF[tuning.i]; tuning.rgb=[...def]; rgbSliders.forEach((s,k)=>s.draw(def[k])); send(); };
+$('#shDel').onclick=()=>{ const i=tuning.i; tuning=null; favs.splice(i,1); if(S.fav===i) S.fav=null; else if(S.fav>i) S.fav--; closeSheet(); renderFavs(); paint(); toast('Cor apagada'); };
+$('#shSave').onclick=()=>{
+  if(tuning.mode==='fav'){ const i=tuning.i; favs[i].led=[...tuning.rgb]; tuning=null; closeSheet(); useFav(i); renderFavs(); paint(); toast('Cor afinada e guardada'); return; }
+  calib[tuning.i]=[...tuning.rgb]; S.white=tuning.i; S.fav=null; S.on=true; const i=tuning.i; tuning=null;
   const [h,s]=toHS(...hex(whites[i].dataset.show)); S.h=h; S.s=s; placeK(true); closeSheet(); paint(); shown.cb(shown.x); toast('Branco '+['quente','neutro','frio'][i]+' guardado'); };
 
 /* ============================================================

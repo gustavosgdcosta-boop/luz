@@ -458,7 +458,7 @@ nav.tabs button.hover{transform:scale(1.1)}
 <script>
 'use strict';
 /* ================= Utilidades ================= */
-const VERSION='3.6';
+const VERSION='3.7';
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const css=document.documentElement.style;
@@ -793,9 +793,9 @@ new ResizeObserver(()=>placeKnob(false)).observe(wheel);
 /* ================= Barra horizontal: arrasto 1:1, elástico, devolução com a velocidade do dedo ================= */
 /* Ímanes suaves: perto de um valor comum, a curva achata (fica "presa" no valor exato) e depois
    volta a acompanhar o dedo. É contínua — não há saltos — por isso não se sente a correção. */
-const BRIGHT_DETENTS=[[1,.022],[.75,.03],[.5,.03],[.25,.024],[.15,.017],[.10,.013],[.05,.008]].map(([d,r])=>[d,r*1.2]);   // +20% (pedido)
+const BRIGHT_DETENTS=[[1,.022],[.75,.03],[.5,.03],[.25,.024],[.15,.017],[.10,.013],[.05,.008]].map(([d,r])=>[d,r*1.44]);   // +20% e mais +20% (pedido)
 function magnet(v,detents){ for(const [d,r] of detents){ const o=v-d; if(Math.abs(o)<r){ const t=Math.abs(o)/r; return d+Math.sign(o)*r*t*t*t; } } return v; }
-function nearestDetent(v,detents){ for(const [d,r] of detents) if(Math.abs(v-d)<r*.72) return d; return null; }
+function nearestDetent(v,detents){ for(const [d,r] of detents) if(Math.abs(v-d)<r*.8) return d; return null; }
 function HBar(el,{get,set,isOff=()=>false,spin=false,detents=null,fineBelow=0}){
   const fill=el.querySelector('.fill'), ico=el.querySelector('.ico'), val=el.querySelector('.val');
   const sp=new Spring(0,{response:.3}); let drag=null; const vt=tracker();

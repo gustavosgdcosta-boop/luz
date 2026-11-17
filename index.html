@@ -458,7 +458,7 @@ nav.tabs button.hover{transform:scale(1.1)}
 <script>
 'use strict';
 /* ================= Utilidades ================= */
-const VERSION='3.4';
+const VERSION='3.5';
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const css=document.documentElement.style;
@@ -791,7 +791,12 @@ wheel.addEventListener('keydown',e=>{ const st=TS(), k={ArrowLeft:[-6,0],ArrowRi
 new ResizeObserver(()=>placeKnob(false)).observe(wheel);
 
 /* ================= Barra horizontal: arrasto 1:1, elástico, devolução com a velocidade do dedo ================= */
-function HBar(el,{get,set,isOff=()=>false,spin=false}){
+/* Ímanes suaves: perto de um valor comum, a curva achata (fica "presa" no valor exato) e depois
+   volta a acompanhar o dedo. É contínua — não há saltos — por isso não se sente a correção. */
+const BRIGHT_DETENTS=[[1,.022],[.75,.03],[.5,.03],[.25,.024],[.15,.017],[.10,.013],[.05,.008]];
+function magnet(v,detents){ for(const [d,r] of detents){ const o=v-d; if(Math.abs(o)<r){ const t=Math.abs(o)/r; return d+Math.sign(o)*r*t*t*t; } } return v; }
+function nearestDetent(v,detents){ for(const [d,r] of detents) if(Math.abs(v-d)<r*.6) return d; return null; }
+function HBar(el,{get,set,isOff=()=>false,spin=false,detents=null,fineBelow=0}){
   const fill=el.querySelector('.fill'), ico=el.querySelector('.ico'), val=el.querySelector('.val');
   const sp=new Spring(0,{response:.3}); let drag=null; const vt=tracker();
   sp.cb=x=>{ const over=x>1?x-1:x<0?x:0, v=clamp(x,0,1), shown=isOff()?0:v, W=el.clientWidth||1;
@@ -800,17 +805,25 @@ function HBar(el,{get,set,isOff=()=>false,spin=false}){
     if(ico) ico.style.transform=`scale(${.82+.3*shown})`+(spin?` rotate(${shown*90}deg)`:'');
     const p=Math.round(shown*100); val.textContent= isOff() ? 'Desligada' : p+'%'; el.setAttribute('aria-valuenow',p);
     el.classList.toggle('low', shown*W<48); el.classList.toggle('full', shown*W>W-(val.offsetWidth+30)); el.classList.toggle('off', isOff()); };
-  el.addEventListener('pointerdown',e=>{ el.setPointerCapture(e.pointerId); drag={x:e.clientX, v0:isOff()?0:get(), moved:false, w:el.clientWidth}; vt.reset(); });
-  el.addEventListener('pointermove',e=>{ if(!drag) return; const dx=e.clientX-drag.x;
-    if(!drag.moved){ if(Math.abs(dx)<6) return; drag.moved=true; drag.x=e.clientX; return; }
-    const raw=drag.v0+dx/drag.w, disp= raw>1 ? 1+rubber(raw-1,1) : raw<0 ? rubber(raw,1) : raw; set(clamp(raw,.01,1)); vt.add(disp); sp.jump(disp); });
-  const end=()=>{ if(!drag) return; if(drag.moved) sp.to(clamp(get(),0,1),{velocity:vt.get(),damping:.82,response:.34}); drag=null; };
+  el.addEventListener('pointerdown',e=>{ el.setPointerCapture(e.pointerId); drag={x:e.clientX, last:e.clientX, raw:isOff()?0:get(), moved:false, w:el.clientWidth}; vt.reset(); });
+  el.addEventListener('pointermove',e=>{ if(!drag) return;
+    if(!drag.moved){ if(Math.abs(e.clientX-drag.x)<6) return; drag.moved=true; drag.last=e.clientX; return; }
+    // abaixo do limite fino, o dedo mexe a barra ~3x mais devagar (precisão entre 1% e 5%)
+    const step=(e.clientX-drag.last)/drag.w; drag.last=e.clientX;
+    drag.raw+= step * (fineBelow && drag.raw<fineBelow ? .32 : 1);
+    const raw=drag.raw, inside=clamp(raw,0,1), shaped= detents ? magnet(inside,detents) : inside;
+    const disp= raw>1 ? 1+rubber(raw-1,1) : raw<0 ? rubber(raw,1) : shaped;
+    set(clamp(shaped,.01,1)); vt.add(disp); sp.jump(disp); });
+  const end=()=>{ if(!drag) return;
+    if(drag.moved){ let v=clamp(get(),0,1); const d= detents && nearestDetent(v,detents); if(d!=null){ v=d; set(d); }
+      sp.to(v,{velocity:d!=null?0:vt.get(),damping:d!=null?1:.82,response:d!=null?.28:.34}); }
+    drag=null; };
   el.addEventListener('pointerup',end); el.addEventListener('pointercancel',end);
   el.addEventListener('keydown',e=>{ const d={ArrowRight:.05,ArrowUp:.05,ArrowLeft:-.05,ArrowDown:-.05}[e.key]; if(d==null) return; e.preventDefault(); set(clamp(get()+d,.01,1)); sp.to(get()); });
   new ResizeObserver(()=>sp.cb(sp.x)).observe(el);
   return { sync(anim){ if(drag) return; anim ? sp.to(get()) : sp.jump(get()); sp.cb(sp.x); } };
 }
-const brightBar=HBar($('#bright'),{ spin:true, get:()=>TS().b, isOff:()=>!TS().on, set:v=>{ const st=TS(); st.on=true; st.b=v; commit(); } });
+const brightBar=HBar($('#bright'),{ spin:true, detents:BRIGHT_DETENTS, fineBelow:.05, get:()=>TS().b, isOff:()=>!TS().on, set:v=>{ const st=TS(); st.on=true; st.b=v; commit(); } });
 const speedBar=HBar($('#speedBar'),{ get:()=>TS().speed/100, set:v=>{ TS().speed=Math.round(v*100); commit(); } });
 
 /* ================= Favoritas e brancos ================= */

@@ -487,7 +487,7 @@ body[data-bt="off"] #btBtn{background:rgb(var(--red)); color:#fff; box-shadow:in
 <script>
 'use strict';
 /* ================= Utilidades ================= */
-const VERSION='3.18';
+const VERSION='3.19';
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const css=document.documentElement.style;
@@ -851,7 +851,7 @@ function HBar(el,{get,set,isOff=()=>false,spin=false,detents=null,fineBelow=0,ic
     fill.style.transform=`scaleX(${shown})`;
     el.style.transform= over ? `scale(${1+Math.abs(over)*.12},${1-Math.abs(over)*.08})` : ''; el.style.transformOrigin= over>0 ? '0% 50%' : '100% 50%';
     if(ico) ico.style.transform=`scale(${.82+.3*shown})`+(spin?` rotate(${shown*90}deg)`:'');
-    const p=Math.round(shown*100); val.textContent= isOff() ? 'Desligada' : p+'%'; el.setAttribute('aria-valuenow',p);
+    const p=Math.round(clamp(x0,0,1)*100); val.textContent= isOff() ? 'Desligada' : p+'%'; el.setAttribute('aria-valuenow',p);   // a percentagem não inclui o rebote: fica congelada no valor escolhido
     el.classList.toggle('low', shown*W<48); el.classList.toggle('full', shown*W>W-(val.offsetWidth+30)); el.classList.toggle('off', isOff()); };
   el.addEventListener('pointerdown',e=>{ if(e.target.closest('.pwr')) return; el.setPointerCapture(e.pointerId); drag={x:e.clientX, last:e.clientX, raw:isOff()?0:get(), moved:false, w:el.clientWidth}; vt.reset(); });
   el.addEventListener('pointermove',e=>{ if(!drag) return; let step=0;

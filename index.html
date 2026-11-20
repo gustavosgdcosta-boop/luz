@@ -16,7 +16,7 @@
 :root{
   --bg:#ffffff; --ink:#0b0b0f; --ink-2:rgba(60,60,67,.62); --ink-3:rgba(60,60,67,.3);
   --fill:rgba(120,120,128,.15); --fill-2:rgba(120,120,128,.1); --sep:rgba(60,60,67,.16);
-  --tint:255,149,0; --tint-hi:255,183,60; --green:52,199,89; --red:255,59,48;
+  --tint:255,134,0; --tint-hi:255,165,60; --green:52,199,89; --red:255,59,48;
   --g-clear:rgba(255,255,255,.34); --g-reg:rgba(255,255,255,.5); --g-strong:rgba(250,250,252,.86);
   --g-hi:rgba(255,255,255,.98); --g-lo:rgba(255,255,255,.4); --g-edge:rgba(255,255,255,.6);
   --g-line:rgba(15,20,40,.07); --g-spec:rgba(255,255,255,.6);
@@ -31,7 +31,7 @@
   :root{
     --bg:#000; --ink:#fff; --ink-2:rgba(235,235,245,.62); --ink-3:rgba(235,235,245,.3);
     --fill:rgba(120,120,128,.32); --fill-2:rgba(120,120,128,.22); --sep:rgba(84,84,88,.55);
-    --tint:255,159,10; --tint-hi:255,190,70; --green:48,209,88; --red:255,69,58; --amb:.38;
+    --tint:255,143,10; --tint-hi:255,171,70; --green:48,209,88; --red:255,69,58; --amb:.38;
     --g-clear:rgba(255,255,255,.07); --g-reg:rgba(46,46,52,.4); --g-strong:rgba(34,34,38,.88);
     --g-hi:rgba(255,255,255,.42); --g-lo:rgba(255,255,255,.08); --g-edge:rgba(255,255,255,.17);
     --g-line:rgba(0,0,0,.5); --g-spec:rgba(255,255,255,.15);
@@ -188,8 +188,9 @@ main{position:relative; z-index:1; flex:1; min-height:0; width:100%; max-width:1
 .sect h2{margin:22px 4px 10px; font:600 20px/1.2 var(--display); letter-spacing:-.012em}
 .tiles{display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:12px}
 .tile{--press:.97; --tc:var(--ink-3); position:relative; height:120px; border-radius:26px; padding:14px; display:flex; flex-direction:column; justify-content:space-between; text-align:left; cursor:pointer}
-.tile.on{background:linear-gradient(160deg, rgba(var(--tint),.26), rgba(var(--tint),.08) 70%), var(--g-reg)}
-.tile .cdot{display:inline-block; width:9px; height:9px; border-radius:50%; margin-right:6px; vertical-align:0; background:rgb(var(--tc)); box-shadow:inset 0 0 0 .5px rgba(0,0,0,.15)}
+.tile.on{background:linear-gradient(160deg, rgba(var(--tc),.3), rgba(var(--tc),.08) 70%), var(--g-reg)}
+.tile .cdot{display:inline-block; width:9px; height:9px; border-radius:50%; margin-right:6px; vertical-align:0; background:rgb(var(--red)); box-shadow:inset 0 0 0 .5px rgba(0,0,0,.15)}
+.tile .cdot.ok{background:rgb(var(--green))}
 .ib{position:relative; z-index:4; width:42px; height:42px; border-radius:50%; display:grid; place-items:center; background:var(--fill); color:var(--ink-2); flex:none;
   transition:background-color .3s, color .3s, box-shadow .3s, transform .35s cubic-bezier(.3,1.6,.5,1)}
 .ib:active{transform:scale(.88)} .ib svg{width:22px; height:22px}
@@ -487,7 +488,7 @@ body[data-bt="off"] #btBtn{background:rgb(var(--red)); color:#fff; box-shadow:in
 <script>
 'use strict';
 /* ================= Utilidades ================= */
-const VERSION='3.20';
+const VERSION='3.21';
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const css=document.documentElement.style;
@@ -989,11 +990,11 @@ function groupMenu(g,anchor){
       {label:'Apagar o grupo “'+g.name+'”? Os aparelhos ficam.'},
       {text:'Apagar', icon:ICON.trash, danger:true, onClick:()=>{ store.groups=store.groups.filter(x=>x!==g); if(store.ui.target?.id===g.id) store.ui.target=null; save(); renderAll(); toast('Grupo apagado'); }},
       {text:'Cancelar', icon:'', onClick:()=>{}}])}]); }
-function makeTile({name,sub,icon,colour,isOn,linkSub,onOpen,onToggle,onMore}){
+function makeTile({name,sub,icon,colour,isOn,linkSub,dot,onOpen,onToggle,onMore}){
   const t=document.createElement('div'); t.className='tile glass gi'+(isOn?' on':''); t.setAttribute('role','button'); t.tabIndex=0; if(colour) t.style.setProperty('--tc',colour);
   t.innerHTML=`<button class="ib" aria-label="Ligar ou desligar ${name.replace(/"/g,'')}">${icon}</button><button class="more" aria-label="Opções">${ICON.more}</button><span><b></b><small></small></span>`;
   t.querySelector('b').textContent=name; const sm=t.querySelector('small'); sm.textContent=sub;
-  if(isOn&&colour){ const dot=document.createElement('span'); dot.className='cdot'; sm.prepend(dot); }
+  if(dot){ const d=document.createElement('span'); d.className='cdot '+dot; sm.prepend(d); }
   if(linkSub){ const l=document.createElement('span'); l.className='link'; l.textContent=' · '+linkSub; sm.appendChild(l); }
   t.querySelector('.ib').onclick=e=>{ e.stopPropagation(); onToggle(); };
   t.querySelector('.more').onclick=e=>{ e.stopPropagation(); onMore(e.currentTarget); };
@@ -1004,12 +1005,12 @@ function renderLuzes(){
   const dt=$('#deviceTiles'), gt=$('#groupTiles'); dt.innerHTML=''; gt.innerHTML='';
   store.devices.forEach(d=>{ const st=d.state, s=C(d.id).status;
     const sub= s!=='on' ? statusTxt(d.id) : !st.on ? 'Desligada' : st.fx ? FX.find(f=>f.id===st.fx)?.name : 'Ligada · '+Math.round(st.b*100)+'%';
-    dt.appendChild(makeTile({name:d.name, sub, icon:ICON.strip, colour: st.on?displayRGB(st).join(','):null, isOn:st.on, linkSub: s==='off'?'Ligar':null,
+    dt.appendChild(makeTile({name:d.name, sub, icon:ICON.strip, colour: st.on?displayRGB(st).join(','):null, isOn:st.on, dot: s==='on'?'ok':'no', linkSub: s==='off'?'Ligar':null,
       onOpen:()=>{ setTarget('device',d.id); select('ajustes'); if(s==='off') connectDevice(d.id,false); },
       onToggle:()=>{ st.on=!st.on; push(d.id); afterToggle(); }, onMore:a=>deviceMenu(d,a)})); });
   const add=document.createElement('button'); add.className='tile add'; add.innerHTML=`<span class="ib">${ICON.plus}</span><span><b>Adicionar</b><small>Procurar por Bluetooth</small></span>`; add.onclick=()=>addDevice(false); dt.appendChild(add);
   store.groups.forEach(g=>{ const ms=g.members.map(dev).filter(Boolean), onN=ms.filter(d=>d.state.on).length;
-    gt.appendChild(makeTile({name:g.name, icon:ICON.group, isOn:onN>0, colour: onN?displayRGB(ms.find(d=>d.state.on).state).join(','):null,
+    gt.appendChild(makeTile({name:g.name, icon:ICON.group, isOn:onN>0, dot: ms.length&&ms.every(d=>C(d.id).status==='on')?'ok':'no', colour: onN?displayRGB(ms.find(d=>d.state.on).state).join(','):null,
       sub: !ms.length?'Sem aparelhos' : onN ? (onN===ms.length?(ms.length>1?'Todas ligadas':'Ligada'):onN+' de '+ms.length+' ligadas') : (ms.length>1?ms.length+' luzes · desligadas':'1 luz · desligada'),
       onOpen:()=>{ setTarget('group',g.id); select('ajustes'); },
       onToggle:()=>{ const on=!(onN>0); ms.forEach(d=>{ d.state.on=on; push(d.id); }); g.state.on=on; afterToggle(); }, onMore:a=>groupMenu(g,a)})); });

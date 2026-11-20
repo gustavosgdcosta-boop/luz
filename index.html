@@ -475,7 +475,7 @@ body[data-bt="off"] #btBtn{background:var(--bt-red); color:#fff; box-shadow:inse
 <script>
 'use strict';
 /* ================= Utilidades ================= */
-const VERSION='3.27';
+const VERSION='3.28';
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const css=document.documentElement.style;
@@ -531,7 +531,7 @@ function colourName(h,s){ if(s<.14) return 'Branco';
   return s<.5 ? n+' suave' : n; }
 const BASES=[[255,0,0],[0,255,0],[0,0,255],[255,255,0],[0,255,255],[255,0,255],[255,255,255]];
 function nearestBase(rgb){ const m=Math.max(...rgb)||1, n=rgb.map(v=>v/m*255); let best=0,bd=1e9; BASES.forEach((b,i)=>{ const d=b.reduce((a,v,k)=>a+(v-n[k])**2,0); if(d<bd){bd=d;best=i;} }); return best; }
-const WHITES=[{name:'Quente', show:'#ffc98f'},{name:'Neutro', show:'#ffe5c4'},{name:'Frio', show:'#f1f3ff'}];
+const WHITES=[{name:'Quente', show:'#ffe5c4'},{name:'Neutro', show:'#f8ece2'},{name:'Frio', show:'#f1f3ff'}];
 const WHITE_DEF=[[255,72,4],[255,104,18],[255,140,46]];
 const DEF_FAVS=[[0,1],[14,.9],[28,.8],[44,.95],[56,.9],[90,.75],[130,.8],[160,.75],[186,.85],[206,.9],[228,1],[272,.72],[318,.75]];
 const MAX_FAVS=14;

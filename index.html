@@ -31,7 +31,7 @@
   :root{
     --bg:#000; --ink:#fff; --ink-2:rgba(235,235,245,.62); --ink-3:rgba(235,235,245,.3);
     --fill:rgba(120,120,128,.32); --fill-2:rgba(120,120,128,.22); --sep:rgba(84,84,88,.55);
-    --tint:255,159,10; --tint-hi:255,190,70; --green:48,209,88; --red:255,69,58;
+    --tint:255,159,10; --tint-hi:255,190,70; --green:48,209,88; --red:255,69,58; --amb:.38;
     --g-clear:rgba(255,255,255,.07); --g-reg:rgba(46,46,52,.4); --g-strong:rgba(34,34,38,.88);
     --g-hi:rgba(255,255,255,.42); --g-lo:rgba(255,255,255,.08); --g-edge:rgba(255,255,255,.17);
     --g-line:rgba(0,0,0,.5); --g-spec:rgba(255,255,255,.15);
@@ -62,6 +62,7 @@ svg{display:block}
 @keyframes d2{to{transform:translate3d(-8vmax,10vmax,0) scale(.92)}}
 @keyframes d3{to{transform:translate3d(10vmax,-6vmax,0) scale(1.1)}}
 @media (prefers-color-scheme: light){ #ambient{opacity:calc(var(--glow) * .58)} }
+@media (prefers-color-scheme: dark){ #ambient{opacity:calc(var(--glow) * var(--amb,.5))} }
 
 /* Liquid Glass: corpo translúcido, linha especular, aro de luz, brilho interior
    e um reflexo que segue o dedo (--mx/--my) */
@@ -99,15 +100,9 @@ body[data-tab="ajustes"] .chev{display:block}
 .circle .badge.on{background:rgb(var(--green))}
 .circle .badge.busy{background:rgb(var(--tint)); animation:blink 1s ease-in-out infinite}
 @keyframes blink{50%{opacity:.25}}
-#addBtn, #btBtn, #powerBtn{display:none}
+#addBtn, #btBtn{display:none}
 body[data-tab="luzes"] #addBtn{display:grid}
-body[data-tab="ajustes"] #btBtn, body[data-tab="ajustes"] #powerBtn, body[data-tab="efeitos"] #powerBtn{display:grid}
-.power svg{width:22px; height:22px; color:var(--ink-2)}
-.power[aria-pressed="true"]{background:linear-gradient(180deg, rgba(var(--tint-hi),.97), rgba(var(--tint),.95)) !important;
-  box-shadow:inset 0 1px .5px rgba(255,255,255,.8), inset 0 -2px 6px rgba(160,70,0,.25), 0 6px 16px rgba(var(--tint),.35) !important; -webkit-backdrop-filter:none; backdrop-filter:none}
-.power[aria-pressed="true"] svg{color:#fff}
-.power[aria-pressed="true"]::before{background:none; -webkit-backdrop-filter:none; backdrop-filter:none}
-.power[aria-pressed="true"]::after{box-shadow:inset 0 1.5px 1px rgba(255,255,255,.7), inset 0 0 0 1px rgba(255,255,255,.25)}
+body[data-tab="ajustes"] #btBtn{display:grid}
 
 main{position:relative; z-index:1; flex:1; min-height:0; width:100%; max-width:1320px; margin:0 auto}
 .view{height:100%; min-height:0}
@@ -357,12 +352,33 @@ nav.tabs button.hover{transform:scale(1.1)}
   .fx-grid{grid-template-columns:repeat(2, minmax(0,1fr))}
   .fxc{flex-direction:row; align-items:center; justify-content:flex-start}
 }
+/* Botão de ligar dentro da barra do brilho: o sol gira com o brilho; ao desligar, transforma-se no ícone de ligar */
+.pwr{position:absolute; z-index:3; left:5px; top:50%; width:46px; height:46px; margin-top:-23px; border-radius:50%; display:grid; place-items:center; color:#fff;
+  background:rgba(255,255,255,.26); box-shadow:inset 0 1px .5px rgba(255,255,255,.85), inset 0 0 0 .5px rgba(255,255,255,.4), 0 2px 8px rgba(120,60,0,.12);
+  transition:background-color .45s ease, color .45s ease, box-shadow .45s ease, transform .3s cubic-bezier(.3,1.5,.5,1)}
+.pwr:active{transform:scale(.9)}
+.pwr svg{position:absolute; width:24px; height:24px; transition:opacity .42s ease, scale .62s cubic-bezier(.3,1.35,.5,1), rotate .62s cubic-bezier(.3,1.35,.5,1), filter .42s ease}
+.pwr .pow-ic{opacity:0; scale:.3; rotate:-160deg; filter:blur(4px)}
+.pwr[aria-pressed="false"] .sun-ic{opacity:0; scale:.3; rotate:160deg; filter:blur(4px)}
+.pwr[aria-pressed="false"] .pow-ic{opacity:1; scale:1; rotate:0deg; filter:blur(0)}
+.pwr[aria-pressed="false"]{color:var(--ink-2); background:var(--fill-2); box-shadow:inset 0 0 0 .5px var(--g-edge), inset 0 1px .5px var(--g-hi)}
+.hbar.low .pwr[aria-pressed="true"]{color:rgb(var(--tint)); background:rgba(var(--tint),.16); box-shadow:inset 0 0 0 .5px rgba(var(--tint),.3)}
+@media (min-width:700px) and (min-height:600px){ .pwr{width:58px; height:58px; margin-top:-29px; left:7px} .pwr svg{width:30px; height:30px} }
+
+/* Botão Bluetooth: vermelho a piscar sem ligação, verde sólido com ligação */
+#btBtn{transition:background-color .45s ease, color .3s ease, box-shadow .45s ease, transform .3s cubic-bezier(.3,1.6,.5,1)}
+body[data-bt="on"] #btBtn{background:rgb(var(--green)); color:#fff; box-shadow:inset 0 1px .5px rgba(255,255,255,.7), 0 6px 18px rgba(var(--green),.42), 0 0 0 .5px rgba(0,0,0,.08)}
+body[data-bt="off"] #btBtn{background:rgb(var(--red)); color:#fff; box-shadow:inset 0 1px .5px rgba(255,255,255,.55), 0 6px 18px rgba(var(--red),.42), 0 0 0 .5px rgba(0,0,0,.08); animation:btflash 1.2s ease-in-out infinite}
+@keyframes btflash{
+  0%,100%{background-color:rgb(var(--red)); box-shadow:inset 0 1px .5px rgba(255,255,255,.55), 0 0 0 0 rgba(var(--red),.6), 0 0 0 .5px rgba(0,0,0,.08)}
+  50%{background-color:rgba(var(--red),.42); box-shadow:inset 0 1px .5px rgba(255,255,255,.55), 0 0 0 12px rgba(var(--red),0), 0 0 0 .5px rgba(0,0,0,.08)}}
+@media (prefers-reduced-motion: reduce){ #btBtn{animation:none !important} .pwr svg{transition:none !important} }
 @media (prefers-reduced-motion: reduce){ #ambient i, .pv, .palette.editing .fav, .palette.editing .white{animation:none !important} .gi.lit{transform:none} }
 @media (prefers-reduced-transparency: reduce){ .glass{background:var(--g-strong) !important} .glass::before{-webkit-backdrop-filter:none; backdrop-filter:none} #ambient{opacity:.25} }
 @media (prefers-contrast: more){ .glass::after{background:var(--ink)} }
 </style>
 </head>
-<body data-tab="ajustes">
+<body data-tab="ajustes" data-bt="off">
 <div id="ambient" aria-hidden="true"><i class="b1"></i><i class="b2"></i><i class="b3"></i></div>
 
 <header>
@@ -370,8 +386,7 @@ nav.tabs button.hover{transform:scale(1.1)}
     <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></button>
   <div class="actions">
     <button class="circle glass gi" id="addBtn" aria-label="Adicionar aparelho ou grupo" aria-haspopup="menu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
-    <button class="circle glass gi" id="btBtn" aria-label="Ligação Bluetooth" aria-haspopup="menu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m7 7 10 10-5 5V2l5 5L7 17"/></svg><span class="badge" id="btBadge"></span></button>
-    <button class="circle glass gi power" id="powerBtn" aria-pressed="true" aria-label="Ligar ou desligar a luz"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 3v8"/><path d="M6.4 6.6a8 8 0 1 0 11.2 0"/></svg></button>
+    <button class="circle glass gi" id="btBtn" aria-label="Ligação Bluetooth" aria-haspopup="menu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m7 7 10 10-5 5V2l5 5L7 17"/></svg></button>
   </div>
 </header>
 
@@ -403,7 +418,7 @@ nav.tabs button.hover{transform:scale(1.1)}
     </div>
     <div class="hbar glass" id="bright" role="slider" aria-label="Brilho" aria-valuemin="0" aria-valuemax="100" tabindex="0">
       <div class="fill"></div>
-      <svg class="ico" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="12" r="4.6"/><g stroke="currentColor" stroke-width="2.1" stroke-linecap="round"><path d="M12 2.4v2.1M12 19.5v2.1M2.4 12h2.1M19.5 12h2.1M5.2 5.2l1.5 1.5M17.3 17.3l1.5 1.5M5.2 18.8l1.5-1.5M17.3 6.7l1.5-1.5"/></g></svg>
+      <button class="pwr" id="pwr" aria-pressed="true" aria-label="Ligar ou desligar a luz"><svg class="sun-ic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="12" r="4.6"/><g stroke="currentColor" stroke-width="2.1" stroke-linecap="round"><path d="M12 2.4v2.1M12 19.5v2.1M2.4 12h2.1M19.5 12h2.1M5.2 5.2l1.5 1.5M17.3 17.3l1.5 1.5M5.2 18.8l1.5-1.5M17.3 6.7l1.5-1.5"/></g></svg><svg class="pow-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="M12 3v8"/><path d="M6.4 6.6a8 8 0 1 0 11.2 0"/></svg></button>
       <span class="val">80%</span>
     </div>
   </section>
@@ -472,7 +487,7 @@ nav.tabs button.hover{transform:scale(1.1)}
 <script>
 'use strict';
 /* ================= Utilidades ================= */
-const VERSION='3.17';
+const VERSION='3.18';
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const css=document.documentElement.style;
@@ -648,7 +663,7 @@ async function attach(id,quiet,isNew){
   try{
     const srv=await c.bt.gatt.connect(), svc=await srv.getPrimaryService(SVC);
     c.ch=await svc.getCharacteristic(CHR); c.tries=0; c.last={}; c.pending={};
-    setStatus(id,'on'); if(!quiet) toast(isNew ? d.name+' adicionada e ligada' : 'Ligada a '+d.name);
+    setStatus(id,'on');
     push(id);
   }catch(e){ c.ch=null; setStatus(id,'off'); if(!quiet){ const m=explain(e); if(m) toast(m,3800); } }
 }
@@ -656,7 +671,6 @@ function onDisc(id){
   const c=C(id); c.ch=null; c.pending={}; setStatus(id,'off');
   if(c.manual) return;
   if(c.tries<3){ const wait=1000*2**c.tries++; setTimeout(()=>{ if(!c.ch&&c.bt&&!c.manual) attach(id,true); },wait); }
-  else toast('A ligação a '+(dev(id)?.name||'fita')+' caiu.',3600);
 }
 function disconnect(id){ const c=C(id); c.manual=true; try{ c.bt?.gatt?.disconnect(); }catch(e){} c.ch=null; setStatus(id,'off'); }
 function setStatus(id,s){ C(id).status=s; renderStatus(); renderLuzes(); }
@@ -822,34 +836,53 @@ const BRIGHT_DETENTS=(()=>{ const base=[[1,.022],[.75,.03],[.5,.03],[.25,.024],[
 const HOLD=.45;   // na parte central de cada íman a barra fica parada no valor exato
 function magnet(v,detents){ for(const [d,r] of detents){ const o=v-d; if(Math.abs(o)<r){ const t=Math.abs(o)/r; if(t<HOLD) return d; const u=(t-HOLD)/(1-HOLD); return d+Math.sign(o)*r*u*u; } } return v; }
 function nearestDetent(v,detents){ for(const [d,r] of detents) if(Math.abs(v-d)<r) return d; return null; }
-function HBar(el,{get,set,isOff=()=>false,spin=false,detents=null,fineBelow=0}){
-  const fill=el.querySelector('.fill'), ico=el.querySelector('.ico'), val=el.querySelector('.val');
+const BOUNCE_R=.24, BOUNCE_A=.032;   // rebote ao prender num íman: passa uns 2% do valor e volta a assentar
+const bounce={a:0,t0:0,raf:0};
+function bounceOff(now){ if(!bounce.t0) return 0; const t=(now-bounce.t0)/1000; if(t>.7){ bounce.t0=0; return 0; }
+  return bounce.a*Math.exp(-t/.11)*Math.sin(2*Math.PI*t/.24); }
+function bounceLoop(sp){ sp.cb(sp.x); if(bounce.t0){ bounce.raf=requestAnimationFrame(()=>bounceLoop(sp)); } else bounce.raf=0; }
+function bounceKick(dir,sp){ bounce.a=dir*BOUNCE_A; bounce.t0=performance.now(); if(!bounce.raf) bounceLoop(sp); }   // rebote ao entrar/sair de um íman: sobe um pouco além do valor e assenta
+function HBar(el,{get,set,isOff=()=>false,spin=false,detents=null,fineBelow=0,icoSel='.ico'}){
+  const fill=el.querySelector('.fill'), ico=el.querySelector(icoSel), val=el.querySelector('.val');
   const sp=new Spring(0,{response:.3}); let drag=null; const vt=tracker();
-  sp.cb=x=>{ const over=x>1?x-1:x<0?x:0, v=clamp(x,0,1), shown=isOff()?0:v, W=el.clientWidth||1;
+  let snapS={d:null,landed:true,dir:1};   // íman em que a barra está presa, e se já assentou nele (dispara o rebote)
+  sp.cb=x0=>{ if(snapS.d!=null && !snapS.landed && Math.abs(x0-snapS.d)<.004){ snapS.landed=true; bounceKick(snapS.dir,sp); }
+    const x=x0+bounceOff(performance.now()); const over=x>1?x-1:x<0?x:0, v=clamp(x,0,1), shown=isOff()?0:v, W=el.clientWidth||1;
     fill.style.transform=`scaleX(${shown})`;
     el.style.transform= over ? `scale(${1+Math.abs(over)*.12},${1-Math.abs(over)*.08})` : ''; el.style.transformOrigin= over>0 ? '0% 50%' : '100% 50%';
     if(ico) ico.style.transform=`scale(${.82+.3*shown})`+(spin?` rotate(${shown*90}deg)`:'');
     const p=Math.round(shown*100); val.textContent= isOff() ? 'Desligada' : p+'%'; el.setAttribute('aria-valuenow',p);
     el.classList.toggle('low', shown*W<48); el.classList.toggle('full', shown*W>W-(val.offsetWidth+30)); el.classList.toggle('off', isOff()); };
-  el.addEventListener('pointerdown',e=>{ el.setPointerCapture(e.pointerId); drag={x:e.clientX, last:e.clientX, raw:isOff()?0:get(), moved:false, w:el.clientWidth}; vt.reset(); });
-  el.addEventListener('pointermove',e=>{ if(!drag) return;
+  el.addEventListener('pointerdown',e=>{ if(e.target.closest('.pwr')) return; el.setPointerCapture(e.pointerId); drag={x:e.clientX, last:e.clientX, raw:isOff()?0:get(), moved:false, w:el.clientWidth}; vt.reset(); });
+  el.addEventListener('pointermove',e=>{ if(!drag) return; let step=0;
     if(!drag.moved){ if(Math.abs(e.clientX-drag.x)<6) return; drag.moved=true; drag.last=e.clientX; return; }
     // abaixo do limite fino, o dedo mexe a barra ~3x mais devagar (precisão entre 1% e 5%)
-    const step=(e.clientX-drag.last)/drag.w; drag.last=e.clientX;
+    step=(e.clientX-drag.last)/drag.w; drag.last=e.clientX;
     drag.raw+= step * (fineBelow && drag.raw<fineBelow ? .32 : 1);
     const raw=drag.raw, inside=clamp(raw,0,1), shaped= detents ? magnet(inside,detents) : inside;
     const disp= raw>1 ? 1+rubber(raw-1,1) : raw<0 ? rubber(raw,1) : shaped;
-    set(clamp(shaped,.01,1)); vt.add(disp); sp.jump(disp); });
+    set(clamp(shaped,.01,1)); vt.add(disp);
+    const near= detents ? nearestDetent(inside,detents) : null;
+    if(near!=null){
+      const dir=Math.sign(step)||1;
+      if(snapS.d!==near){ snapS.d=near; snapS.landed=false; }   // prende-se: rebota quando assentar, no sentido em que vinhas
+      snapS.dir=dir;
+      sp.to(disp,{damping:1,response:.14});                          // aproxima-se do íman sem saltos
+    }
+    else{ snapS.d=null;
+      if(Math.abs(sp.x-disp)>.003 || Math.abs(sp.v)>.02) sp.to(disp,{damping:1,response:.06});   // a sair do íman: segue o dedo sem salto
+      else sp.jump(disp); } });                                                                  // normal: 1:1 com o dedo
   const end=()=>{ if(!drag) return;
-    if(drag.moved){ let v=clamp(get(),0,1); const d= detents && nearestDetent(v,detents); if(d!=null){ v=d; set(d); }
-      sp.to(v,{velocity:d!=null?0:vt.get(),damping:d!=null?1:.82,response:d!=null?.28:.34}); }
+    if(drag.moved){ let v=clamp(get(),0,1); const d= detents && nearestDetent(v,detents);
+      if(d!=null){ set(d); snapS.d=d; snapS.landed=false; snapS.dir=Math.sign(vt.get())||1; sp.to(d,{damping:1,response:.2}); }
+      else sp.to(v,{velocity:vt.get(),damping:.82,response:.34}); }
     drag=null; };
   el.addEventListener('pointerup',end); el.addEventListener('pointercancel',end);
-  el.addEventListener('keydown',e=>{ const d={ArrowRight:.05,ArrowUp:.05,ArrowLeft:-.05,ArrowDown:-.05}[e.key]; if(d==null) return; e.preventDefault(); set(clamp(get()+d,.01,1)); sp.to(get()); });
+  el.addEventListener('keydown',e=>{ const d={ArrowRight:.05,ArrowUp:.05,ArrowLeft:-.05,ArrowDown:-.05}[e.key]; if(d==null) return; e.preventDefault(); set(clamp(get()+d,.01,1)); sp.to(get(),{damping:1,response:.3}); });
   new ResizeObserver(()=>sp.cb(sp.x)).observe(el);
-  return { sync(anim){ if(drag) return; anim ? sp.to(get()) : sp.jump(get()); sp.cb(sp.x); } };
+  return { sync(anim){ if(drag) return; anim ? sp.to(get(),{damping:1,response:.3}) : sp.jump(get()); sp.cb(sp.x); } };
 }
-const brightBar=HBar($('#bright'),{ spin:true, detents:BRIGHT_DETENTS, fineBelow:.05, get:()=>TS().b, isOff:()=>!TS().on, set:v=>{ const st=TS(); st.on=true; st.b=v; commit(); } });
+const brightBar=HBar($('#bright'),{ spin:true, icoSel:'.sun-ic', detents:BRIGHT_DETENTS, fineBelow:.05, get:()=>TS().b, isOff:()=>!TS().on, set:v=>{ const st=TS(); st.on=true; st.b=v; commit(); } });
 const speedBar=HBar($('#speedBar'),{ get:()=>TS().speed/100, set:v=>{ TS().speed=Math.round(v*100); commit(); } });
 
 /* ================= Favoritas e brancos ================= */
@@ -916,7 +949,7 @@ function sortable(el,from){
   el.addEventListener('pointerup',end); el.addEventListener('pointercancel',end);
 }
 $('#stFav').onclick=addFav;
-$('#powerBtn').onclick=()=>{ const st=TS(); st.on=!st.on; commit(); };
+$('#pwr').onclick=()=>{ const st=TS(); st.on=!st.on; commit(); };
 
 /* ================= Efeitos ================= */
 function renderFxGrid(){ const g=$('#fxGrid'); g.innerHTML='';
@@ -1001,7 +1034,7 @@ function renderControls(){
   $$('.fav[data-i]').forEach(f=>f.setAttribute('aria-current', st.white==null && st.fav===+f.dataset.i));
   $$('.white').forEach((w,i)=>w.setAttribute('aria-pressed', st.white===i));
   brightBar.sync(true); speedBar.sync(true);
-  const pb=$('#powerBtn'); pb.setAttribute('aria-pressed', st.on); pb.setAttribute('aria-label', st.on?'Desligar a luz':'Ligar a luz');
+  const pb=$('#pwr'); pb.setAttribute('aria-pressed', st.on); pb.setAttribute('aria-label', st.on?'Desligar a luz':'Ligar a luz');
   $('#stName').textContent= st.fx ? FX.find(f=>f.id===st.fx)?.name : st.white!=null ? 'Branco '+WHITES[st.white].name.toLowerCase() : colourName(st.h,st.s);
   $('#stSub').textContent= (tg?tg.obj.name:'Sem aparelho')+' · '+(st.on ? (st.fx?'Efeito · ':'')+Math.round(st.b*100)+'%' : 'Desligada');
   $('#stRgb').textContent= st.fx ? 'A correr na própria fita' : 'A fita recebe '+ledFor(st).join(' · ');
@@ -1020,7 +1053,7 @@ function renderAmbient(){
 }
 function renderStatus(){
   const sts=membersOf(target()).map(d=>C(d.id).status), all=sts.length&&sts.every(s=>s==='on'), part=sts.some(s=>s==='on');
-  $('#btBadge').className='badge'+(all?' on':sts.some(s=>s==='connecting')?' busy':'');
+  document.body.dataset.bt = all ? 'on' : 'off';
   $('#btBtn').setAttribute('aria-label','Ligação Bluetooth: '+(all?'ligada':part?'em parte':'sem ligação'));
   const chip=$('#stConn'); chip.classList.toggle('on',!!all); chip.querySelector('span').textContent= all?'Ligada' : part?'Em parte':'Sem ligação';
 }

@@ -16,7 +16,7 @@
 :root{
   --bg:#ffffff; --ink:#0b0b0f; --ink-2:rgba(60,60,67,.62); --ink-3:rgba(60,60,67,.3);
   --fill:rgba(120,120,128,.15); --fill-2:rgba(120,120,128,.1); --sep:rgba(60,60,67,.16);
-  --tint:255,101,0; --tint-hi:255,124,60; --bt-red:rgb(230,60,50); --bt-vale:rgb(183,42,36); --green:52,199,89; --red:255,59,48;
+  --tint:255,101,0; --tint-hi:255,124,60; --bt-red:rgb(255,0,0); --bt-vale:rgb(191,0,0); --green:52,199,89; --red:255,59,48;
   --g-clear:rgba(255,255,255,.34); --g-reg:rgba(255,255,255,.5); --g-strong:rgba(250,250,252,.86);
   --g-hi:rgba(255,255,255,.98); --g-lo:rgba(255,255,255,.4); --g-edge:rgba(255,255,255,.6);
   --g-line:rgba(15,20,40,.07); --g-spec:rgba(255,255,255,.6);
@@ -31,7 +31,7 @@
   :root{
     --bg:#000; --ink:#fff; --ink-2:rgba(235,235,245,.62); --ink-3:rgba(235,235,245,.3);
     --fill:rgba(120,120,128,.32); --fill-2:rgba(120,120,128,.22); --sep:rgba(84,84,88,.55);
-    --tint:255,107,10; --tint-hi:255,128,70; --bt-red:rgb(226,68,58); --bt-vale:rgb(127,34,29); --green:48,209,88; --red:255,69,58; --amb:.38;
+    --tint:255,107,10; --tint-hi:255,128,70; --bt-red:rgb(255,0,0); --bt-vale:rgb(191,0,0); --green:48,209,88; --red:255,69,58; --amb:.38;
     --g-clear:rgba(255,255,255,.07); --g-reg:rgba(46,46,52,.4); --g-strong:rgba(34,34,38,.88);
     --g-hi:rgba(255,255,255,.42); --g-lo:rgba(255,255,255,.08); --g-edge:rgba(255,255,255,.17);
     --g-line:rgba(0,0,0,.5); --g-spec:rgba(255,255,255,.15);
@@ -355,7 +355,7 @@ nav.tabs button.hover{transform:scale(1.1)}
 /* Botão Bluetooth: vermelho a piscar sem ligação, verde sólido com ligação */
 #btBtn{transition:background-color .45s ease, color .3s ease, box-shadow .45s ease, transform .3s cubic-bezier(.3,1.6,.5,1)}
 /* o desfoque do vidro aumenta a saturação da cor por baixo: no botão Bluetooth fica desligado para a cor ficar contida */
-#btBtn::before{-webkit-backdrop-filter:blur(30px) saturate(155%) brightness(1.04); backdrop-filter:blur(30px) saturate(155%) brightness(1.04); background:linear-gradient(180deg, rgba(255,255,255,.12), rgba(255,255,255,0) 50%) !important}
+#btBtn::before{-webkit-backdrop-filter:blur(30px) saturate(155%) brightness(1.04); backdrop-filter:blur(30px) saturate(155%) brightness(1.04); background:linear-gradient(180deg, rgba(255,255,255,.22), rgba(255,255,255,0) 46%, rgba(0,0,0,.05)) !important}
 body[data-bt="on"] #btBtn{background:rgb(var(--green)); color:#fff; box-shadow:inset 0 1px .5px rgba(255,255,255,.5), 0 4px 12px rgba(0,0,0,.14), 0 0 0 .5px rgba(0,0,0,.08)}
 body[data-bt="off"] #btBtn{background:var(--bt-red); color:#fff; box-shadow:inset 0 1px .5px rgba(255,255,255,.42), 0 5px 15px rgba(140,30,26,.28), 0 0 0 .5px rgba(0,0,0,.08); animation:btflash 1.2s ease-in-out infinite}
 @keyframes btflash{
@@ -475,7 +475,7 @@ body[data-bt="off"] #btBtn{background:var(--bt-red); color:#fff; box-shadow:inse
 <script>
 'use strict';
 /* ================= Utilidades ================= */
-const VERSION='3.28';
+const VERSION='3.29';
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const css=document.documentElement.style;

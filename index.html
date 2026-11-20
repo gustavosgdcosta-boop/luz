@@ -487,7 +487,7 @@ body[data-bt="off"] #btBtn{background:rgb(var(--red)); color:#fff; box-shadow:in
 <script>
 'use strict';
 /* ================= Utilidades ================= */
-const VERSION='3.19';
+const VERSION='3.20';
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const css=document.documentElement.style;
@@ -591,8 +591,12 @@ function commit(){
   const tg=target();
   if(tg && tg.kind==='group') for(const d of membersOf(tg)) Object.assign(d.state, clone(tg.obj.state));
   for(const d of membersOf(tg)) push(d.id);
-  save(); renderControls(); renderAmbient(); renderLuzes();
+  save(); scheduleRender();
 }
+/* Um único redesenho por frame. A lista de Luzes só se reconstrói quando está visível. */
+let renderQ=0;
+function scheduleRender(){ if(renderQ) return;
+  renderQ=requestAnimationFrame(()=>{ renderQ=0; renderControls(); renderAmbient(); if(document.body.dataset.tab==='luzes') renderLuzes(); }); }
 function displayRGB(st){ return st.white!=null ? hexRgb(WHITES[st.white].show) : hsv(st.h,st.s); }
 function ledFor(st){ if(st.white!=null) return store.calib[st.white]; const f=st.fav!=null&&store.favs[st.fav]; if(f&&f.led) return f.led; return ledFix(hsv(st.h,st.s)); }
 
@@ -846,13 +850,18 @@ function HBar(el,{get,set,isOff=()=>false,spin=false,detents=null,fineBelow=0,ic
   const fill=el.querySelector('.fill'), ico=el.querySelector(icoSel), val=el.querySelector('.val');
   const sp=new Spring(0,{response:.3}); let drag=null; const vt=tracker();
   let snapS={d:null,landed:true,dir:1};   // íman em que a barra está presa, e se já assentou nele (dispara o rebote)
+  let W=el.clientWidth||1, VW=val.offsetWidth||0, L={};
+  const put=(k,v,fn)=>{ if(L[k]!==v){ L[k]=v; fn(v); } };   // escreve no ecrã só se o valor mudou
   sp.cb=x0=>{ if(snapS.d!=null && !snapS.landed && Math.abs(x0-snapS.d)<.004){ snapS.landed=true; bounceKick(snapS.dir,sp); }
     const x=x0+bounceOff(performance.now()); const over=x>1?x-1:x<0?x:0, v=clamp(x,0,1), shown=isOff()?0:v, W=el.clientWidth||1;
-    fill.style.transform=`scaleX(${shown})`;
-    el.style.transform= over ? `scale(${1+Math.abs(over)*.12},${1-Math.abs(over)*.08})` : ''; el.style.transformOrigin= over>0 ? '0% 50%' : '100% 50%';
-    if(ico) ico.style.transform=`scale(${.82+.3*shown})`+(spin?` rotate(${shown*90}deg)`:'');
-    const p=Math.round(clamp(x0,0,1)*100); val.textContent= isOff() ? 'Desligada' : p+'%'; el.setAttribute('aria-valuenow',p);   // a percentagem não inclui o rebote: fica congelada no valor escolhido
-    el.classList.toggle('low', shown*W<48); el.classList.toggle('full', shown*W>W-(val.offsetWidth+30)); el.classList.toggle('off', isOff()); };
+    put('fill', shown.toFixed(4), v=>fill.style.transform=`scaleX(${v})`);
+    put('elt', over ? (1+Math.abs(over)*.12).toFixed(4)+'|'+(1-Math.abs(over)*.08).toFixed(4)+'|'+(over>0?'0':'1') : '', v=>{ if(!v){ el.style.transform=''; return; }
+      const [a,b,o]=v.split('|'); el.style.transform=`scale(${a},${b})`; el.style.transformOrigin= o==='0' ? '0% 50%' : '100% 50%'; });
+    if(ico) put('ico', spin ? shown.toFixed(3) : shown.toFixed(3), v=>ico.style.transform=`scale(${.82+.3*v})`+(spin?` rotate(${v*90}deg)`:''));
+    const pc=Math.round(clamp(x0,0,1)*100), pt= isOff() ? 'Desligada' : pc+'%';   // a percentagem não inclui o rebote: fica congelada no valor escolhido
+    put('val', pt, v=>val.textContent=v); put('aria', pc, v=>el.setAttribute('aria-valuenow',v));
+    put('low', shown*W<48, v=>el.classList.toggle('low',v)); put('full', shown*W>W-(VW+30), v=>el.classList.toggle('full',v)); put('off', isOff(), v=>el.classList.toggle('off',v)); };
+  new ResizeObserver(()=>{ W=el.clientWidth||1; VW=val.offsetWidth||0; L={}; }).observe(el);
   el.addEventListener('pointerdown',e=>{ if(e.target.closest('.pwr')) return; el.setPointerCapture(e.pointerId); drag={x:e.clientX, last:e.clientX, raw:isOff()?0:get(), moved:false, w:el.clientWidth}; vt.reset(); });
   el.addEventListener('pointermove',e=>{ if(!drag) return; let step=0;
     if(!drag.moved){ if(Math.abs(e.clientX-drag.x)<6) return; drag.moved=true; drag.last=e.clientX; return; }
@@ -879,7 +888,6 @@ function HBar(el,{get,set,isOff=()=>false,spin=false,detents=null,fineBelow=0,ic
     drag=null; };
   el.addEventListener('pointerup',end); el.addEventListener('pointercancel',end);
   el.addEventListener('keydown',e=>{ const d={ArrowRight:.05,ArrowUp:.05,ArrowLeft:-.05,ArrowDown:-.05}[e.key]; if(d==null) return; e.preventDefault(); set(clamp(get()+d,.01,1)); sp.to(get(),{damping:1,response:.3}); });
-  new ResizeObserver(()=>sp.cb(sp.x)).observe(el);
   return { sync(anim){ if(drag) return; anim ? sp.to(get(),{damping:1,response:.3}) : sp.jump(get()); sp.cb(sp.x); } };
 }
 const brightBar=HBar($('#bright'),{ spin:true, icoSel:'.sun-ic', detents:BRIGHT_DETENTS, fineBelow:.05, get:()=>TS().b, isOff:()=>!TS().on, set:v=>{ const st=TS(); st.on=true; st.b=v; commit(); } });
@@ -1039,7 +1047,7 @@ function renderControls(){
   $('#stSub').textContent= (tg?tg.obj.name:'Sem aparelho')+' · '+(st.on ? (st.fx?'Efeito · ':'')+Math.round(st.b*100)+'%' : 'Desligada');
   $('#stRgb').textContent= st.fx ? 'A correr na própria fita' : 'A fita recebe '+ledFor(st).join(' · ');
   $('#orb').classList.toggle('off',!st.on);
-  $$('.fxc').forEach(b=>{ const f=FX.find(x=>x.id===b.dataset.id); b.setAttribute('aria-pressed', st.fx===f.id);
+  if(document.body.dataset.tab==='efeitos') $$('.fxc').forEach(b=>{ const f=FX.find(x=>x.id===b.dataset.id); b.setAttribute('aria-pressed', st.fx===f.id);
     const cols=f.cols||[`rgb(${show})`,`rgba(${show},.3)`], pv=b.querySelector('.pv');
     pv.style.setProperty('--pv',`conic-gradient(${cols.map((c,i)=>`${c} ${i/cols.length*100}% ${(i+1)/cols.length*100}%`).join(',')})`); pv.style.setProperty('--n',cols.length); });
   $('#fxStop').hidden=!st.fx;
@@ -1074,7 +1082,7 @@ function select(tab,anim=true){
   closeMenu(); if(editing && tab!=='ajustes'){ editing=false; renderFavs(); }
   document.body.dataset.tab=tab; store.ui.tab=tab; save();
   tabBtns.forEach(b=>b.setAttribute('aria-selected', b.dataset.tab===tab)); $$('section.view').forEach(v=>v.hidden= v.id!=='v-'+tab);
-  renderHeader(); placeLens(anim); ls.to(1,{damping:.6,response:.35});
+  renderHeader(); placeLens(anim); ls.to(1,{damping:.6,response:.35}); scheduleRender();
   if(tab==='ajustes') requestAnimationFrame(()=>{ layoutVars(); sizeWheel(); brightBar.sync(false); });
   if(tab==='efeitos') requestAnimationFrame(()=>speedBar.sync(false));
 }

@@ -16,7 +16,7 @@
 :root{
   --bg:#ffffff; --ink:#0b0b0f; --ink-2:rgba(60,60,67,.62); --ink-3:rgba(60,60,67,.3);
   --fill:rgba(120,120,128,.15); --fill-2:rgba(120,120,128,.1); --sep:rgba(60,60,67,.16);
-  --tint:255,101,0; --tint-hi:255,124,60; --bt-vale:rgb(206,44,36); --green:52,199,89; --red:255,59,48;
+  --tint:255,101,0; --tint-hi:255,124,60; --bt-red:rgb(204,60,52); --bt-vale:rgb(160,40,35); --green:52,199,89; --red:255,59,48;
   --g-clear:rgba(255,255,255,.34); --g-reg:rgba(255,255,255,.5); --g-strong:rgba(250,250,252,.86);
   --g-hi:rgba(255,255,255,.98); --g-lo:rgba(255,255,255,.4); --g-edge:rgba(255,255,255,.6);
   --g-line:rgba(15,20,40,.07); --g-spec:rgba(255,255,255,.6);
@@ -31,7 +31,7 @@
   :root{
     --bg:#000; --ink:#fff; --ink-2:rgba(235,235,245,.62); --ink-3:rgba(235,235,245,.3);
     --fill:rgba(120,120,128,.32); --fill-2:rgba(120,120,128,.22); --sep:rgba(84,84,88,.55);
-    --tint:255,107,10; --tint-hi:255,128,70; --bt-vale:rgba(255,69,58,.42); --green:48,209,88; --red:255,69,58; --amb:.38;
+    --tint:255,107,10; --tint-hi:255,128,70; --bt-red:rgb(196,66,58); --bt-vale:rgb(146,38,34); --green:48,209,88; --red:255,69,58; --amb:.38;
     --g-clear:rgba(255,255,255,.07); --g-reg:rgba(46,46,52,.4); --g-strong:rgba(34,34,38,.88);
     --g-hi:rgba(255,255,255,.42); --g-lo:rgba(255,255,255,.08); --g-edge:rgba(255,255,255,.17);
     --g-line:rgba(0,0,0,.5); --g-spec:rgba(255,255,255,.15);
@@ -354,12 +354,13 @@ nav.tabs button.hover{transform:scale(1.1)}
 
 /* Botão Bluetooth: vermelho a piscar sem ligação, verde sólido com ligação */
 #btBtn{transition:background-color .45s ease, color .3s ease, box-shadow .45s ease, transform .3s cubic-bezier(.3,1.6,.5,1)}
-body[data-bt="on"] #btBtn{background:rgb(var(--green)); color:#fff; box-shadow:inset 0 1px .5px rgba(255,255,255,.7), 0 6px 18px rgba(var(--green),.42), 0 0 0 .5px rgba(0,0,0,.08)}
-body[data-bt="off"] #btBtn{background:rgb(var(--red)); color:#fff; box-shadow:inset 0 1px .5px rgba(255,255,255,.55), 0 6px 18px rgba(var(--red),.42), 0 0 0 .5px rgba(0,0,0,.08); animation:btflash 1.2s ease-in-out infinite}
+/* o desfoque do vidro aumenta a saturação da cor por baixo: no botão Bluetooth fica desligado para a cor ficar contida */
+#btBtn::before{-webkit-backdrop-filter:none; backdrop-filter:none; background:linear-gradient(180deg, rgba(255,255,255,.12), rgba(255,255,255,0) 50%) !important}
+body[data-bt="on"] #btBtn{background:rgb(var(--green)); color:#fff; box-shadow:inset 0 1px .5px rgba(255,255,255,.5), 0 4px 12px rgba(0,0,0,.14), 0 0 0 .5px rgba(0,0,0,.08)}
+body[data-bt="off"] #btBtn{background:var(--bt-red); color:#fff; box-shadow:inset 0 1px .5px rgba(255,255,255,.3), 0 4px 12px rgba(0,0,0,.16), 0 0 0 .5px rgba(0,0,0,.08); animation:btflash 1.2s ease-in-out infinite}
 @keyframes btflash{
-  0%,100%{background-color:rgb(var(--red)); box-shadow:inset 0 1px .5px rgba(255,255,255,.55), 0 0 0 0 rgba(var(--red),.6), 0 0 0 .5px rgba(0,0,0,.08)}
-  50%{background-color:var(--bt-vale); box-shadow:inset 0 1px .5px rgba(255,255,255,.55), 0 0 0 12px rgba(var(--red),0), 0 0 0 .5px rgba(0,0,0,.08)}}
-@media (prefers-color-scheme: light){ body[data-bt="off"] #btBtn::before{background:linear-gradient(180deg, rgba(255,255,255,.14), rgba(255,255,255,0) 55%)} }
+  0%,100%{background-color:var(--bt-red); box-shadow:inset 0 1px .5px rgba(255,255,255,.3), 0 4px 12px rgba(0,0,0,.16), 0 0 0 0 rgba(0,0,0,.18), 0 0 0 .5px rgba(0,0,0,.08)}
+  50%{background-color:var(--bt-vale); box-shadow:inset 0 1px .5px rgba(255,255,255,.3), 0 4px 12px rgba(0,0,0,.16), 0 0 0 10px rgba(0,0,0,0), 0 0 0 .5px rgba(0,0,0,.08)}}
 @media (prefers-reduced-motion: reduce){ #btBtn, #ambient i, .pv, .palette.editing .fav, .palette.editing .white{animation:none !important} .gi.lit{transform:none} }
 @media (prefers-reduced-transparency: reduce){ .glass{background:var(--g-strong) !important} .glass::before{-webkit-backdrop-filter:none; backdrop-filter:none} #ambient{opacity:.25} }
 @media (prefers-contrast: more){ .glass::after{box-shadow:inset 0 0 0 1.5px var(--ink)} }
@@ -474,7 +475,7 @@ body[data-bt="off"] #btBtn{background:rgb(var(--red)); color:#fff; box-shadow:in
 <script>
 'use strict';
 /* ================= Utilidades ================= */
-const VERSION='3.25';
+const VERSION='3.26';
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const css=document.documentElement.style;
@@ -838,7 +839,7 @@ function HBar(el,{get,set,isOff=()=>false,spin=false,detents=null,fineBelow=0,ic
   const fill=el.querySelector('.fill'), ico=el.querySelector(icoSel), val=el.querySelector('.val');
   const sp=new Spring(0,{response:.3}); let drag=null; const vt=tracker();
   let snapS={d:null,landed:true,dir:1};   // íman em que a barra está presa, e se já assentou nele (dispara o rebote)
-  let W=el.clientWidth||1, VW=val.offsetWidth||0, L={};
+  let W=el.clientWidth, VW=val.offsetWidth||0, L={};
   const put=(k,v,fn)=>{ if(L[k]!==v){ L[k]=v; fn(v); } };   // escreve no ecrã só se o valor mudou
   sp.cb=x0=>{ if(snapS.d!=null && !snapS.landed && Math.abs(x0-snapS.d)<.004){ snapS.landed=true; bounceKick(snapS.dir,sp); }
     const x=x0+bounceOff(performance.now()); const over=x>1?x-1:x<0?x:0, v=clamp(x,0,1), shown=isOff()?0:v;
@@ -849,8 +850,8 @@ function HBar(el,{get,set,isOff=()=>false,spin=false,detents=null,fineBelow=0,ic
     if(ico) put('ico', shown.toFixed(3), v=>ico.style.transform=`scale(${.82+.3*v})`+(spin?` rotate(${v*90}deg)`:''));
     const pc=Math.round(clamp(x0,0,1)*100), pt= isOff() ? 'Desligada' : pc+'%';   // a percentagem não inclui o rebote: fica congelada no valor escolhido
     put('val', pt, v=>val.textContent=v); put('aria', pc, v=>el.setAttribute('aria-valuenow',v));
-    put('low', shown*W<48, v=>el.classList.toggle('low',v)); put('full', shown*W>W-(VW+30), v=>el.classList.toggle('full',v)); put('off', isOff(), v=>el.classList.toggle('off',v)); };
-  new ResizeObserver(()=>{ W=el.clientWidth||1; VW=val.offsetWidth||0; L={}; }).observe(el);
+    put('low', W>0 && shown*W<48, v=>el.classList.toggle('low',v)); put('full', W>0 && shown*W>W-(VW+30), v=>el.classList.toggle('full',v)); put('off', isOff(), v=>el.classList.toggle('off',v)); };
+  new ResizeObserver(()=>{ W=el.clientWidth; VW=val.offsetWidth||0; L={}; sp.cb(sp.x); }).observe(el);
   el.addEventListener('pointerdown',e=>{ if(e.target.closest('.pwr')) return; el.setPointerCapture(e.pointerId); drag={x:e.clientX, last:e.clientX, raw:isOff()?0:get(), moved:false, w:el.clientWidth}; vt.reset(); });
   el.addEventListener('pointermove',e=>{ if(!drag) return; let step=0;
     if(!drag.moved){ if(Math.abs(e.clientX-drag.x)<6) return; drag.moved=true; drag.last=e.clientX; return; }

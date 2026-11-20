@@ -77,7 +77,6 @@ svg{display:block}
 .glass::after{content:""; position:absolute; inset:0; border-radius:inherit; pointer-events:none; z-index:3;
   box-shadow:inset 0 1px .5px var(--g-hi), inset 0 -1px 1px var(--g-lo), inset 0 0 0 .5px var(--g-edge), inset 0 18px 28px -24px var(--g-hi)}
 .glass.clear{background:var(--g-clear)}
-.glass.strong{background:var(--g-strong)}
 .tinted{background:linear-gradient(180deg, rgba(var(--tint-hi),.96), rgba(var(--tint),.94)) !important; color:#fff;
   box-shadow:inset 0 1px .5px rgba(255,255,255,.75), inset 0 -2px 6px rgba(160,70,0,.25), 0 10px 26px rgba(var(--tint),.38), 0 0 0 .5px rgba(150,70,0,.2) !important}
 .tinted::before{-webkit-backdrop-filter:none; backdrop-filter:none; background:radial-gradient(160px circle at var(--mx,50%) var(--my,-60%), rgba(255,255,255,calc(var(--lit) * .6)), transparent 70%), linear-gradient(180deg, rgba(255,255,255,.4), transparent 52%) !important}
@@ -96,10 +95,6 @@ body[data-tab="ajustes"] .chev{display:block}
 .actions{display:flex; gap:10px; flex:none}
 .circle{position:relative; width:44px; height:44px; border-radius:50%; display:grid; place-items:center; flex:none}
 .circle svg{width:21px; height:21px}
-.circle .badge{position:absolute; top:6px; right:6px; width:10px; height:10px; border-radius:50%; background:var(--ink-3); box-shadow:0 0 0 2px var(--bg); z-index:4; transition:background-color .3s}
-.circle .badge.on{background:rgb(var(--green))}
-.circle .badge.busy{background:rgb(var(--tint)); animation:blink 1s ease-in-out infinite}
-@keyframes blink{50%{opacity:.25}}
 #addBtn, #btBtn{display:none}
 body[data-tab="luzes"] #addBtn{display:grid}
 body[data-tab="ajustes"] #btBtn{display:grid}
@@ -116,7 +111,6 @@ main{position:relative; z-index:1; flex:1; min-height:0; width:100%; max-width:1
 #v-ajustes{display:grid; gap:var(--gap); grid-template-columns:minmax(0,1fr); grid-template-rows:minmax(0,1fr) auto auto; grid-template-areas:"wheel" "palette" "bright"}
 .wheel-zone{grid-area:wheel; min-height:0; min-width:0; display:grid; place-items:center; box-sizing:border-box}
 .bezel{width:var(--wsz,200px); height:var(--wsz,200px); flex:none; border-radius:50%; padding:clamp(6px, calc(var(--wsz,200px) * .03), 14px); background:var(--g-clear)}
-.bezel::after{z-index:1}
 .wheel{position:relative; width:100%; height:100%; border-radius:50%; touch-action:none; cursor:crosshair;
   background:radial-gradient(circle closest-side, #fff 0%, rgba(255,255,255,.88) 10%, rgba(255,255,255,0) 100%),
              conic-gradient(from 90deg, #ff3b30, #ff9500, #ffcc00, #34c759, #00c7be, #32ade6, #007aff, #5856d6, #af52de, #ff2d55, #ff3b30);
@@ -189,6 +183,7 @@ main{position:relative; z-index:1; flex:1; min-height:0; width:100%; max-width:1
 .tiles{display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:12px}
 .tile{--press:.97; --tc:var(--ink-3); position:relative; height:120px; border-radius:26px; padding:14px; display:flex; flex-direction:column; justify-content:space-between; text-align:left; cursor:pointer}
 .tile.on{background:linear-gradient(160deg, rgba(var(--tc),.3), rgba(var(--tc),.08) 70%), var(--g-reg)}
+.tile .hit{position:absolute; inset:0; z-index:2; border-radius:inherit; background:none}
 .tile .cdot{display:inline-block; width:9px; height:9px; border-radius:50%; margin-right:6px; vertical-align:0; background:rgb(var(--red)); box-shadow:inset 0 0 0 .5px rgba(0,0,0,.15)}
 .tile .cdot.ok{background:rgb(var(--green))}
 .ib{position:relative; z-index:4; width:42px; height:42px; border-radius:50%; display:grid; place-items:center; background:var(--fill); color:var(--ink-2); flex:none;
@@ -274,7 +269,6 @@ nav.tabs button.hover{transform:scale(1.1)}
 .sh-sw{display:flex; align-items:center; gap:12px; margin-bottom:14px}
 .sh-sw i{flex:none; width:44px; height:44px; border-radius:50%; box-shadow:inset 0 0 0 .5px rgba(0,0,0,.15), inset 0 -3px 6px rgba(0,0,0,.15)}
 .sh-sw span{font-size:14px; color:var(--ink-2); line-height:1.3}
-.rgbrow{display:grid; grid-template-columns:22px minmax(0,1fr) 40px; align-items:center; gap:12px; height:46px}
 .rgbrow b{font:600 15px var(--rounded)}
 .rgbrow.step{grid-template-columns:22px 48px minmax(0,1fr) 48px; grid-template-rows:48px 4px; row-gap:6px; height:auto; margin-bottom:10px}
 .rgbrow.step b{color:var(--c)}
@@ -285,12 +279,7 @@ nav.tabs button.hover{transform:scale(1.1)}
 .num:focus{box-shadow:inset 0 0 0 2px var(--c); background:var(--g-reg)}
 .num::placeholder{color:var(--ink-3)}
 .rgbrow.step .bar{grid-column:2 / 5; grid-row:2; height:4px; border-radius:2px; background:var(--fill); overflow:hidden; display:block}
-.rgbrow.step .bar i{display:block; height:100%; width:0; background:var(--c); border-radius:2px; transition:width .15s} .rgbrow output{font:500 15px var(--rounded); text-align:right; color:var(--ink-2); font-variant-numeric:tabular-nums}
-.slider{position:relative; height:36px; touch-action:none; cursor:ew-resize}
-.slider .track{position:absolute; left:0; right:0; top:50%; height:6px; margin-top:-3px; border-radius:3px; background:var(--fill)}
-.slider .track i{position:absolute; inset:0 auto 0 0; border-radius:3px; background:var(--c)}
-.slider .thumb{position:absolute; top:50%; left:0; width:38px; height:24px; margin:-12px 0 0 -19px; border-radius:12px; background:#fff; box-shadow:0 3px 10px rgba(0,0,0,.2), 0 0 0 .5px rgba(0,0,0,.06); transition:transform .35s cubic-bezier(.3,1.5,.5,1), background-color .2s}
-.slider.active .thumb{transform:scale(1.4, 1.55); background:rgba(255,255,255,.35); -webkit-backdrop-filter:blur(2px) saturate(180%); backdrop-filter:blur(2px) saturate(180%); box-shadow:inset 0 0 0 1px rgba(255,255,255,.85), inset 0 1px 3px rgba(255,255,255,.7), 0 6px 18px rgba(0,0,0,.2)}
+.rgbrow.step .bar i{display:block; height:100%; width:0; background:var(--c); border-radius:2px; transition:width .15s}
 .sh-btns{display:grid; grid-auto-flow:column; grid-auto-columns:1fr; gap:10px; margin-top:18px}
 .sh-btns button{height:50px; border-radius:25px; font:600 17px var(--font); transition:transform .3s cubic-bezier(.3,1.5,.5,1)}
 .sh-btns button:active{transform:scale(.96)}
@@ -371,10 +360,9 @@ body[data-bt="off"] #btBtn{background:rgb(var(--red)); color:#fff; box-shadow:in
   0%,100%{background-color:rgb(var(--red)); box-shadow:inset 0 1px .5px rgba(255,255,255,.55), 0 0 0 0 rgba(var(--red),.6), 0 0 0 .5px rgba(0,0,0,.08)}
   50%{background-color:var(--bt-vale); box-shadow:inset 0 1px .5px rgba(255,255,255,.55), 0 0 0 12px rgba(var(--red),0), 0 0 0 .5px rgba(0,0,0,.08)}}
 @media (prefers-color-scheme: light){ body[data-bt="off"] #btBtn::before{background:linear-gradient(180deg, rgba(255,255,255,.14), rgba(255,255,255,0) 55%)} }
-@media (prefers-reduced-motion: reduce){ #btBtn{animation:none !important} .pwr svg{transition:none !important} }
-@media (prefers-reduced-motion: reduce){ #ambient i, .pv, .palette.editing .fav, .palette.editing .white{animation:none !important} .gi.lit{transform:none} }
+@media (prefers-reduced-motion: reduce){ #btBtn, #ambient i, .pv, .palette.editing .fav, .palette.editing .white{animation:none !important} .gi.lit{transform:none} }
 @media (prefers-reduced-transparency: reduce){ .glass{background:var(--g-strong) !important} .glass::before{-webkit-backdrop-filter:none; backdrop-filter:none} #ambient{opacity:.25} }
-@media (prefers-contrast: more){ .glass::after{background:var(--ink)} }
+@media (prefers-contrast: more){ .glass::after{box-shadow:inset 0 0 0 1.5px var(--ink)} }
 </style>
 </head>
 <body data-tab="ajustes" data-bt="off">
@@ -404,7 +392,7 @@ body[data-bt="off"] #btBtn{background:rgb(var(--red)); color:#fff; box-shadow:in
 
   <section id="v-ajustes" class="view">
     <div class="wheel-zone"><div class="bezel glass clear"><div class="wheel" id="wheel" role="slider" aria-label="Cor" tabindex="0"><div class="knob" id="knob"></div></div></div></div>
-    <div class="state glass module" id="stateCard">
+    <div class="state glass module">
       <div class="row"><span class="eyebrow">Agora</span><span class="chip" id="stConn"><i></i><span>Sem ligação</span></span></div>
       <div class="hero"><div class="orb" id="orb"></div>
         <div><div class="name" id="stName">Laranja</div><div class="sub" id="stSub"></div><div class="rgb" id="stRgb"></div></div></div>
@@ -438,7 +426,7 @@ body[data-bt="off"] #btBtn{background:rgb(var(--red)); color:#fff; box-shadow:in
     <div class="soon glass module">
       <div class="big-ic tinted"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 1.8h6a1 1 0 1 1 0 2h-2v1.3a8.6 8.6 0 1 1-2 0V3.8H9a1 1 0 1 1 0-2Zm3 7a1 1 0 0 0-1 1v4.1c0 .3.1.5.3.7l2.4 2.4a1 1 0 0 0 1.4-1.4L13 13.5V9.8a1 1 0 0 0-1-1Z"/></svg></div>
       <h2>Horários a caminho</h2>
-      <p>Primeiro vou confirmar se a tua fita consegue guardar horários sozinha. Sem isso, só funcionariam com a app aberta, e isso não serve.</p>
+      <p>Ainda a confirmar se a fita consegue guardar horários sozinha. Sem isso, só funcionariam com a app aberta.</p>
       <ul class="plan">
         <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 7v5l3 2"/><circle cx="12" cy="12" r="9"/></svg>Desligar daqui a 15, 30, 60 ou 90 minutos</li>
         <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 3v2M5.6 5.6l1.4 1.4M3 12h2M19 12h2M17 7l1.4-1.4M7 16a5 5 0 1 1 10 0"/><path d="M3 20h18"/></svg>Acender devagar ao acordar</li>
@@ -486,7 +474,7 @@ body[data-bt="off"] #btBtn{background:rgb(var(--red)); color:#fff; box-shadow:in
 <script>
 'use strict';
 /* ================= Utilidades ================= */
-const VERSION='3.23';
+const VERSION='3.24';
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const css=document.documentElement.style;
@@ -676,7 +664,7 @@ function onDisc(id){
   if(c.tries<3){ const wait=1000*2**c.tries++; setTimeout(()=>{ if(!c.ch&&c.bt&&!c.manual) attach(id,true); },wait); }
 }
 function disconnect(id){ const c=C(id); c.manual=true; try{ c.bt?.gatt?.disconnect(); }catch(e){} c.ch=null; setStatus(id,'off'); }
-function setStatus(id,s){ C(id).status=s; renderStatus(); renderLuzes(); }
+function setStatus(id,s){ C(id).status=s; renderStatus(); if(document.body.dataset.tab==='luzes') renderLuzes(); }
 const statusTxt=id=>({on:'Ligada', connecting:'A ligar…', off:'Sem ligação'})[C(id).status];
 
 /* ================= Efeitos (correm na própria fita) ================= */
@@ -700,10 +688,11 @@ function toast(msg,ms=2600){ toastEl.textContent=msg; toastS.to(0,{damping:.74,r
 
 /* ================= Vidro que acende onde se toca ================= */
 let litEl=null;
-function litAt(el,e){ const r=el.getBoundingClientRect(); el.style.setProperty('--mx',(e.clientX-r.left)+'px'); el.style.setProperty('--my',(e.clientY-r.top)+'px'); }
-document.addEventListener('pointerdown',e=>{ const g=e.target.closest('.gi'); if(!g) return; litEl=g; litAt(g,e); g.classList.add('lit'); },{passive:true});
+let litRect=null;
+function litAt(el,e){ const r=litRect||el.getBoundingClientRect(); el.style.setProperty('--mx',(e.clientX-r.left)+'px'); el.style.setProperty('--my',(e.clientY-r.top)+'px'); }
+document.addEventListener('pointerdown',e=>{ const g=e.target.closest('.gi'); if(!g) return; litEl=g; litRect=g.getBoundingClientRect(); litAt(g,e); g.classList.add('lit'); },{passive:true});
 document.addEventListener('pointermove',e=>{ if(litEl) litAt(litEl,e); },{passive:true});
-const unlit=()=>{ if(litEl){ const g=litEl; setTimeout(()=>g.classList.remove('lit'),60); litEl=null; } };
+const unlit=()=>{ if(litEl){ const g=litEl; setTimeout(()=>g.classList.remove('lit'),60); litEl=null; litRect=null; } };
 document.addEventListener('pointerup',unlit,{passive:true}); document.addEventListener('pointercancel',unlit,{passive:true});
 
 /* ================= Menu de vidro ================= */
@@ -749,22 +738,22 @@ const tuneSliders=$$('#pTune .rgbrow.step').map(row=>{
   const ch=+row.dataset.ch, num=row.querySelector('.num'), bar=row.querySelector('.bar i');
   const paint=v=>{ bar.style.width=(v/255*100)+'%'; };
   const draw=v=>{ v=clamp(Math.round(v),0,255); if(document.activeElement!==num) num.value=v; paint(v); };
-  const setV=v=>{ v=clamp(Math.round(v),0,255); tuning.rgb[ch]=v; num.value=v; paint(v); tuneSend(); };
+  const setV=v=>{ if(!tuning) return; v=clamp(Math.round(v),0,255); tuning.rgb[ch]=v; num.value=v; paint(v); tuneSend(); };
   // setas: um toque = ±1; manter premido repete, cada vez mais depressa
   row.querySelectorAll('.stp').forEach(b=>{ const d=+b.dataset.d; let t=0, n=0;
-    const tick=()=>{ n++; setV(tuning.rgb[ch]+d*(n>25?10:n>10?5:1)); t=setTimeout(tick, n>10?45:90); };
-    b.addEventListener('pointerdown',e=>{ e.preventDefault(); num.blur(); n=0; setV(tuning.rgb[ch]+d); t=setTimeout(tick,420); });
+    const tick=()=>{ if(!tuning) return; n++; setV(tuning.rgb[ch]+d*(n>25?10:n>10?5:1)); t=setTimeout(tick, n>10?45:90); };
+    b.addEventListener('pointerdown',e=>{ e.preventDefault(); if(!tuning) return; num.blur(); n=0; setV(tuning.rgb[ch]+d); t=setTimeout(tick,420); });
     ['pointerup','pointerleave','pointercancel'].forEach(ev=>b.addEventListener(ev,()=>clearTimeout(t))); });
   // escrever o número: só dígitos, aplica ao vivo, confirma com Enter ou ao sair
-  num.addEventListener('focus',()=>{ num.placeholder=String(tuning.rgb[ch]); num.value=''; });
+  num.addEventListener('focus',()=>{ if(!tuning) return; num.placeholder=String(tuning.rgb[ch]); num.value=''; });
   num.addEventListener('input',()=>{ num.value=num.value.replace(/\D/g,'').slice(0,3);
-    if(num.value!==''){ const v=Math.min(255,+num.value); tuning.rgb[ch]=v; paint(v); tuneSend(); } });
-  num.addEventListener('blur',()=>setV(num.value===''?tuning.rgb[ch]:+num.value));
+    if(tuning && num.value!==''){ const v=Math.min(255,+num.value); tuning.rgb[ch]=v; paint(v); tuneSend(); } });
+  num.addEventListener('blur',()=>{ if(tuning) setV(num.value===''?tuning.rgb[ch]:+num.value); });
   num.addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); num.blur(); }
-    if(e.key==='ArrowUp'||e.key==='ArrowDown'){ e.preventDefault(); setV(tuning.rgb[ch]+(e.key==='ArrowUp'?1:-1)); } });
+    if((e.key==='ArrowUp'||e.key==='ArrowDown') && tuning){ e.preventDefault(); setV(tuning.rgb[ch]+(e.key==='ArrowUp'?1:-1)); } });
   return {draw};
 });
-function tuneSend(){ tuning.members.forEach(push); }
+function tuneSend(){ if(tuning) tuning.members.forEach(push); }
 function openTune(kind,i){
   const members=membersOf(target()).map(d=>d.id);
   const show= kind==='fav' ? hsv(store.favs[i].h,store.favs[i].s) : hexRgb(WHITES[i].show);
@@ -774,7 +763,7 @@ function openTune(kind,i){
   $('#tuneHint').textContent= kind==='fav' ? 'A fita muda ao vivo. Ajusta até a cor na fita ficar igual à da bolinha.' : 'A fita muda ao vivo. Ajusta até o branco ficar como queres.';
   $('#tuneDel').hidden= kind!=='fav';
   openSheet('pTune', kind==='fav' ? 'Afinar cor' : 'Afinar branco '+WHITES[i].name.toLowerCase(), {onClose:()=>{ const t=tuning; tuning=null; if(t) t.members.forEach(push); }});
-  requestAnimationFrame(()=>{ tuneSliders.forEach((s,k)=>s.draw(tuning.rgb[k])); tuneSend(); });
+  requestAnimationFrame(()=>{ if(!tuning) return; tuneSliders.forEach((s,k)=>s.draw(tuning.rgb[k])); tuneSend(); });
 }
 $('#tuneReset').onclick=()=>{ const t=tuning, def= t.kind==='fav' ? ledFix(hsv(store.favs[t.i].h,store.favs[t.i].s)) : WHITE_DEF[t.i]; t.rgb=[...def]; tuneSliders.forEach((s,k)=>s.draw(def[k])); tuneSend(); };
 $('#tuneSave').onclick=()=>{ const t=tuning, st=TS();
@@ -839,7 +828,7 @@ const BRIGHT_DETENTS=(()=>{ const base=[[1,.022],[.75,.03],[.5,.03],[.25,.024],[
 const HOLD=.45;   // na parte central de cada íman a barra fica parada no valor exato
 function magnet(v,detents){ for(const [d,r] of detents){ const o=v-d; if(Math.abs(o)<r){ const t=Math.abs(o)/r; if(t<HOLD) return d; const u=(t-HOLD)/(1-HOLD); return d+Math.sign(o)*r*u*u; } } return v; }
 function nearestDetent(v,detents){ for(const [d,r] of detents) if(Math.abs(v-d)<r) return d; return null; }
-const BOUNCE_R=.24, BOUNCE_A=.032;   // rebote ao prender num íman: passa uns 2% do valor e volta a assentar
+const BOUNCE_A=.032;   // rebote ao prender num íman: passa uns 2% do valor e volta a assentar
 const bounce={a:0,t0:0,raf:0};
 function bounceOff(now){ if(!bounce.t0) return 0; const t=(now-bounce.t0)/1000; if(t>.7){ bounce.t0=0; return 0; }
   return bounce.a*Math.exp(-t/.11)*Math.sin(2*Math.PI*t/.24); }
@@ -852,12 +841,12 @@ function HBar(el,{get,set,isOff=()=>false,spin=false,detents=null,fineBelow=0,ic
   let W=el.clientWidth||1, VW=val.offsetWidth||0, L={};
   const put=(k,v,fn)=>{ if(L[k]!==v){ L[k]=v; fn(v); } };   // escreve no ecrã só se o valor mudou
   sp.cb=x0=>{ if(snapS.d!=null && !snapS.landed && Math.abs(x0-snapS.d)<.004){ snapS.landed=true; bounceKick(snapS.dir,sp); }
-    const x=x0+bounceOff(performance.now()); const over=x>1?x-1:x<0?x:0, v=clamp(x,0,1), shown=isOff()?0:v, W=el.clientWidth||1;
+    const x=x0+bounceOff(performance.now()); const over=x>1?x-1:x<0?x:0, v=clamp(x,0,1), shown=isOff()?0:v;
     put('fill', shown.toFixed(4), v=>fill.style.transform=`scaleX(${v})`);
     if(icoFn) icoFn(clamp(x0,0,1));
     put('elt', over ? (1+Math.abs(over)*.12).toFixed(4)+'|'+(1-Math.abs(over)*.08).toFixed(4)+'|'+(over>0?'0':'1') : '', v=>{ if(!v){ el.style.transform=''; return; }
       const [a,b,o]=v.split('|'); el.style.transform=`scale(${a},${b})`; el.style.transformOrigin= o==='0' ? '0% 50%' : '100% 50%'; });
-    if(ico) put('ico', spin ? shown.toFixed(3) : shown.toFixed(3), v=>ico.style.transform=`scale(${.82+.3*v})`+(spin?` rotate(${v*90}deg)`:''));
+    if(ico) put('ico', shown.toFixed(3), v=>ico.style.transform=`scale(${.82+.3*v})`+(spin?` rotate(${v*90}deg)`:''));
     const pc=Math.round(clamp(x0,0,1)*100), pt= isOff() ? 'Desligada' : pc+'%';   // a percentagem não inclui o rebote: fica congelada no valor escolhido
     put('val', pt, v=>val.textContent=v); put('aria', pc, v=>el.setAttribute('aria-valuenow',v));
     put('low', shown*W<48, v=>el.classList.toggle('low',v)); put('full', shown*W>W-(VW+30), v=>el.classList.toggle('full',v)); put('off', isOff(), v=>el.classList.toggle('off',v)); };
@@ -888,7 +877,7 @@ function HBar(el,{get,set,isOff=()=>false,spin=false,detents=null,fineBelow=0,ic
     drag=null; };
   el.addEventListener('pointerup',end); el.addEventListener('pointercancel',end);
   el.addEventListener('keydown',e=>{ const d={ArrowRight:.05,ArrowUp:.05,ArrowLeft:-.05,ArrowDown:-.05}[e.key]; if(d==null) return; e.preventDefault(); set(clamp(get()+d,.01,1)); sp.to(get(),{damping:1,response:.3}); });
-  return { sync(anim){ if(drag) return; anim ? sp.to(get(),{damping:1,response:.3}) : sp.jump(get()); sp.cb(sp.x); } };
+  return { sync(anim){ if(drag) return; const g=get(); if(g===sp.target){ sp.cb(sp.x); return; } anim ? sp.to(g,{damping:1,response:.3}) : sp.jump(g); sp.cb(sp.x); } };
 }
 
 /* ===== Sol -> ícone de ligar: uma só forma, animada por uma mola (interrompível) =====
@@ -898,25 +887,26 @@ let PM=0, BV=.8;   // PM: 0 = sol, 1 = ícone de ligar · BV: brilho atual (0..1
 const SUNQ={svg:null,core:null,stem:null,rays:null,ray:[],cos:[],sin:[]};
 function initSun(){ const sv=$('#pwr .sun-ic'); if(!sv) return; SUNQ.svg=sv; SUNQ.core=sv.querySelector('.core'); SUNQ.stem=sv.querySelector('.stem'); SUNQ.rays=sv.querySelector('.rays'); SUNQ.ray=[...sv.querySelectorAll('.ray')];
   for(let k=0;k<8;k++){ const a=(-90+45*k)*Math.PI/180; SUNQ.cos.push(Math.cos(a)); SUNQ.sin.push(Math.sin(a)); } }
+const A=(el,k,v)=>{ const c=el._a||(el._a={}); v=String(v); if(c[k]!==v){ c[k]=v; el.setAttribute(k,v); } };
 function drawSun(){
   const q=SUNQ, p=PM, v=BV; if(!q.svg) return;
   const r=4.6+3.4*p, C=2*Math.PI*r, L=C*(1-.25*p);            // disco (r 4.6) -> anel (r 8) com 25% de abertura
-  q.core.setAttribute('r', r.toFixed(3));
-  q.core.setAttribute('stroke-width', (2.2+.3*p).toFixed(3));
-  q.core.setAttribute('fill-opacity', clamp(1-p*1.6,0,1).toFixed(3));
-  q.core.setAttribute('stroke-dasharray', L.toFixed(2)+' '+C.toFixed(2));
-  q.core.setAttribute('transform','rotate(-45 12 12)');        // a abertura fica no topo
-  q.rays.setAttribute('transform','rotate('+(90*p).toFixed(2)+' 12 12)');
-  q.rays.setAttribute('opacity', clamp(1-p,0,1).toFixed(3));
-  q.rays.setAttribute('stroke-width', (2.1+.4*p).toFixed(3));
+  A(q.core,'r', r.toFixed(3));
+  A(q.core,'stroke-width', (2.2+.3*p).toFixed(3));
+  A(q.core,'fill-opacity', clamp(1-p*1.6,0,1).toFixed(3));
+  A(q.core,'stroke-dasharray', L.toFixed(2)+' '+C.toFixed(2));
+  A(q.core,'transform','rotate(-45 12 12)');        // a abertura fica no topo
+  A(q.rays,'transform','rotate('+(90*p).toFixed(2)+' 12 12)');
+  A(q.rays,'opacity', clamp(1-p,0,1).toFixed(3));
+  A(q.rays,'stroke-width', (2.1+.4*p).toFixed(3));
   const r1=7.5+.6*p, r2=9.6-1.6*p;
-  q.ray.forEach((ln,k)=>{ ln.setAttribute('x1',(12+q.cos[k]*r1).toFixed(2)); ln.setAttribute('y1',(12+q.sin[k]*r1).toFixed(2));
-    ln.setAttribute('x2',(12+q.cos[k]*r2).toFixed(2)); ln.setAttribute('y2',(12+q.sin[k]*r2).toFixed(2)); });
-  q.stem.setAttribute('y1',(12-9*p).toFixed(2)); q.stem.setAttribute('y2',(12-p).toFixed(2));
-  q.stem.setAttribute('opacity', clamp(p,0,1).toFixed(3));
-  q.stem.setAttribute('stroke-width', (2.2+.3*p).toFixed(3));
+  q.ray.forEach((ln,k)=>{ A(ln,'x1',(12+q.cos[k]*r1).toFixed(2)); A(ln,'y1',(12+q.sin[k]*r1).toFixed(2));
+    A(ln,'x2',(12+q.cos[k]*r2).toFixed(2)); A(ln,'y2',(12+q.sin[k]*r2).toFixed(2)); });
+  A(q.stem,'y1',(12-9*p).toFixed(2)); A(q.stem,'y2',(12-p).toFixed(2));
+  A(q.stem,'opacity', clamp(p,0,1).toFixed(3));
+  A(q.stem,'stroke-width', (2.2+.3*p).toFixed(3));
   const sc=(.82+.3*v)*(1-p)+.92*p, rot=90*v*(1-p);             // o brilho continua a rodar o sol; o ícone de ligar fica direito
-  q.svg.style.transform=`scale(${sc.toFixed(4)}) rotate(${rot.toFixed(2)}deg)`;
+  const tf=`scale(${sc.toFixed(4)}) rotate(${rot.toFixed(2)}deg)`; if(q.svg._tf!==tf){ q.svg._tf=tf; q.svg.style.transform=tf; }
 }
 const pwrS=new Spring(0,{damping:.8,response:.46});
 pwrS.cb=x=>{ PM=x; drawSun(); };
@@ -947,6 +937,7 @@ function renderFavs(){
     b.innerHTML='<span></span>'+ICON.pencilSmall; b.firstChild.textContent=wh.name; b.setAttribute('aria-label','Branco '+wh.name.toLowerCase());
     longPress(b,()=>openTune('white',i)); b.onclick=()=>{ if(b._long) return; editing ? openTune('white',i) : useWhite(i); }; w.appendChild(b); });
   palette.classList.toggle('editing',editing); $('#editBtn').textContent= editing?'OK':'Editar';
+  favEls=$$('#favs .fav[data-i]'); whiteEls=$$('#whites .white');
   renderControls();
 }
 $('#editBtn').onclick=()=>{ editing=!editing; renderFavs(); if(editing) toast('Toca para afinar. Arrasta uma cor para a mudar de sítio.',3400); };
@@ -1009,7 +1000,7 @@ function deviceMenu(d,anchor){ const c=C(d.id);
       {label:'Esquecer “'+d.name+'”? Os grupos deixam de o incluir.'},
       {text:'Esquecer', icon:ICON.trash, danger:true, onClick:()=>forget(d)},
       {text:'Cancelar', icon:'', onClick:()=>{}}])}]); }
-function forget(d){ disconnect(d.id); store.devices=store.devices.filter(x=>x!==d); store.groups.forEach(g=>g.members=g.members.filter(id=>id!==d.id));
+function forget(d){ disconnect(d.id); conns.delete(d.id); store.devices=store.devices.filter(x=>x!==d); store.groups.forEach(g=>g.members=g.members.filter(id=>id!==d.id));
   if(store.ui.target?.id===d.id) store.ui.target=null; save(); renderAll(); toast(d.name+' esquecida'); }
 function groupMenu(g,anchor){
   openMenu(anchor,[
@@ -1021,14 +1012,17 @@ function groupMenu(g,anchor){
       {text:'Apagar', icon:ICON.trash, danger:true, onClick:()=>{ store.groups=store.groups.filter(x=>x!==g); if(store.ui.target?.id===g.id) store.ui.target=null; save(); renderAll(); toast('Grupo apagado'); }},
       {text:'Cancelar', icon:'', onClick:()=>{}}])}]); }
 function makeTile({name,sub,icon,colour,isOn,linkSub,dot,onOpen,onToggle,onMore}){
-  const t=document.createElement('div'); t.className='tile glass gi'+(isOn?' on':''); t.setAttribute('role','button'); t.tabIndex=0; if(colour) t.style.setProperty('--tc',colour);
-  t.innerHTML=`<button class="ib" aria-label="Ligar ou desligar ${name.replace(/"/g,'')}">${icon}</button><button class="more" aria-label="Opções">${ICON.more}</button><span><b></b><small></small></span>`;
-  t.querySelector('b').textContent=name; const sm=t.querySelector('small'); sm.textContent=sub;
+  const t=document.createElement('div'); t.className='tile glass gi'+(isOn?' on':''); if(colour) t.style.setProperty('--tc',colour);
+  t.innerHTML='<button class="hit"></button><button class="ib">'+icon+'</button><button class="more">'+ICON.more+'</button><span><b></b><small></small></span>';
+  const hit=t.querySelector('.hit'), ib=t.querySelector('.ib'), more=t.querySelector('.more');
+  hit.setAttribute('aria-label','Ajustar '+name); ib.setAttribute('aria-label','Ligar ou desligar '+name); more.setAttribute('aria-label','Opções de '+name);
+  t.querySelector('b').textContent=name;
+  const sm=t.querySelector('small'); sm.textContent=sub;
   if(dot){ const d=document.createElement('span'); d.className='cdot '+dot; sm.prepend(d); }
   if(linkSub){ const l=document.createElement('span'); l.className='link'; l.textContent=' · '+linkSub; sm.appendChild(l); }
-  t.querySelector('.ib').onclick=e=>{ e.stopPropagation(); onToggle(); };
-  t.querySelector('.more').onclick=e=>{ e.stopPropagation(); onMore(e.currentTarget); };
-  t.addEventListener('click',onOpen); t.addEventListener('keydown',e=>{ if(e.target===t&&(e.key==='Enter'||e.key===' ')){ e.preventDefault(); onOpen(); } });
+  hit.onclick=onOpen;
+  ib.onclick=e=>{ e.stopPropagation(); onToggle(); };
+  more.onclick=e=>{ e.stopPropagation(); onMore(more); };
   return t; }
 function afterToggle(){ save(); renderLuzes(); renderControls(); renderAmbient(); }
 function renderLuzes(){
@@ -1067,28 +1061,35 @@ $('#btBtn').onclick=e=>{ const ms=membersOf(target()), items=[{label:'Ligação'
   openMenu(e.currentTarget,items); };
 
 /* ================= Desenho do estado ================= */
+const EL={pwr:$('#pwr'), stName:$('#stName'), stSub:$('#stSub'), stRgb:$('#stRgb'), orb:$('#orb'), fxStop:$('#fxStop')};
+const setText=(el,t)=>{ if(el.textContent!==t) el.textContent=t; };
+const setAttr=(el,k,v)=>{ v=String(v); if(el.getAttribute(k)!==v) el.setAttribute(k,v); };
+let favEls=[], whiteEls=[];   // preenchidas em renderFavs; não se procuram a cada frame
 function renderControls(){
-  const st=TS(), tg=target(), show=displayRGB(st);
-  knob.style.setProperty('--kc', show.join(',')); if(!wd) placeKnob(!reduced);
-  $$('.fav[data-i]').forEach(f=>f.setAttribute('aria-current', st.white==null && st.fav===+f.dataset.i));
-  $$('.white').forEach((w,i)=>w.setAttribute('aria-pressed', st.white===i));
+  const st=TS(), tg=target(), show=displayRGB(st), kc=show.join(',');
+  if(knob._kc!==kc){ knob._kc=kc; knob.style.setProperty('--kc',kc); }
+  if(!wd) placeKnob(!reduced);
+  favEls.forEach(f=>setAttr(f,'aria-current', st.white==null && st.fav===+f.dataset.i));
+  whiteEls.forEach((w,i)=>setAttr(w,'aria-pressed', st.white===i));
   brightBar.sync(true); speedBar.sync(true);
-  pwrS.to(st.on?0:1); const pb=$('#pwr'); pb.setAttribute('aria-pressed', st.on); pb.setAttribute('aria-label', st.on?'Desligar a luz':'Ligar a luz');
-  $('#stName').textContent= st.fx ? FX.find(f=>f.id===st.fx)?.name : st.white!=null ? 'Branco '+WHITES[st.white].name.toLowerCase() : colourName(st.h,st.s);
-  $('#stSub').textContent= (tg?tg.obj.name:'Sem aparelho')+' · '+(st.on ? (st.fx?'Efeito · ':'')+Math.round(st.b*100)+'%' : 'Desligada');
-  $('#stRgb').textContent= st.fx ? 'A correr na própria fita' : 'A fita recebe '+ledFor(st).join(' · ');
-  $('#orb').classList.toggle('off',!st.on);
-  if(document.body.dataset.tab==='efeitos') $$('.fxc').forEach(b=>{ const f=FX.find(x=>x.id===b.dataset.id); b.setAttribute('aria-pressed', st.fx===f.id);
+  pwrS.to(st.on?0:1); setAttr(EL.pwr,'aria-pressed', st.on); setAttr(EL.pwr,'aria-label', st.on?'Desligar a luz':'Ligar a luz');
+  setText(EL.stName, st.fx ? FX.find(f=>f.id===st.fx)?.name : st.white!=null ? 'Branco '+WHITES[st.white].name.toLowerCase() : colourName(st.h,st.s));
+  setText(EL.stSub, (tg?tg.obj.name:'Sem aparelho')+' · '+(st.on ? (st.fx?'Efeito · ':'')+Math.round(st.b*100)+'%' : 'Desligada'));
+  setText(EL.stRgb, st.fx ? 'A correr na própria fita' : 'A fita recebe '+ledFor(st).join(' · '));
+  EL.orb.classList.toggle('off',!st.on);
+  if(document.body.dataset.tab==='efeitos') $$('.fxc').forEach(b=>{ const f=FX.find(x=>x.id===b.dataset.id); setAttr(b,'aria-pressed', st.fx===f.id);
     const cols=f.cols||[`rgb(${show})`,`rgba(${show},.3)`], pv=b.querySelector('.pv');
     pv.style.setProperty('--pv',`conic-gradient(${cols.map((c,i)=>`${c} ${i/cols.length*100}% ${(i+1)/cols.length*100}%`).join(',')})`); pv.style.setProperty('--n',cols.length); });
-  $('#fxStop').hidden=!st.fx;
+  EL.fxStop.hidden=!st.fx;
 }
+const ROOT={};
+function setRoot(k,v){ if(ROOT[k]!==v){ ROOT[k]=v; css.setProperty(k,v); } }
 function renderAmbient(){
   const st=TS(), rgb=displayRGB(st), [h,s]=toHS(...rgb), w=st.white!=null;
   const c2= w ? hsv((h+18)%360, Math.min(1,s+.25)) : hsv((h+38)%360, Math.max(.55,s));
   const c3= w ? hsv((h+350)%360, Math.min(1,s+.4)) : hsv((h+322)%360, Math.max(.5,s*.9));
-  css.setProperty('--c1',rgb.join(',')); css.setProperty('--c2',c2.join(',')); css.setProperty('--c3',c3.join(','));
-  css.setProperty('--glow', st.on ? (.5+.5*st.b).toFixed(3) : '.16');
+  setRoot('--c1',rgb.join(',')); setRoot('--c2',c2.join(',')); setRoot('--c3',c3.join(','));
+  setRoot('--glow', st.on ? (.5+.5*st.b).toFixed(3) : '.16');
 }
 function renderStatus(){
   const sts=membersOf(target()).map(d=>C(d.id).status), all=sts.length&&sts.every(s=>s==='on'), part=sts.some(s=>s==='on');

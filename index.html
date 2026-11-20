@@ -358,10 +358,7 @@ nav.tabs button.hover{transform:scale(1.1)}
   background:rgba(255,255,255,.26); box-shadow:inset 0 1px .5px rgba(255,255,255,.85), inset 0 0 0 .5px rgba(255,255,255,.4), 0 2px 8px rgba(120,60,0,.12);
   transition:background-color .45s ease, color .45s ease, box-shadow .45s ease, transform .3s cubic-bezier(.3,1.5,.5,1)}
 .pwr:active{transform:scale(.9)}
-.pwr svg{position:absolute; width:24px; height:24px; transition:opacity .42s ease, scale .62s cubic-bezier(.3,1.35,.5,1), rotate .62s cubic-bezier(.3,1.35,.5,1), filter .42s ease}
-.pwr .pow-ic{opacity:0; scale:.3; rotate:-160deg; filter:blur(4px)}
-.pwr[aria-pressed="false"] .sun-ic{opacity:0; scale:.3; rotate:160deg; filter:blur(4px)}
-.pwr[aria-pressed="false"] .pow-ic{opacity:1; scale:1; rotate:0deg; filter:blur(0)}
+.pwr svg{position:absolute; width:24px; height:24px; overflow:visible}
 .pwr[aria-pressed="false"]{color:var(--ink-2); background:var(--fill-2); box-shadow:inset 0 0 0 .5px var(--g-edge), inset 0 1px .5px var(--g-hi)}
 .hbar.low .pwr[aria-pressed="true"]{color:rgb(var(--tint)); background:rgba(var(--tint),.16); box-shadow:inset 0 0 0 .5px rgba(var(--tint),.3)}
 @media (min-width:700px) and (min-height:600px){ .pwr{width:58px; height:58px; margin-top:-29px; left:7px} .pwr svg{width:30px; height:30px} }
@@ -420,7 +417,7 @@ body[data-bt="off"] #btBtn{background:rgb(var(--red)); color:#fff; box-shadow:in
     </div>
     <div class="hbar glass" id="bright" role="slider" aria-label="Brilho" aria-valuemin="0" aria-valuemax="100" tabindex="0">
       <div class="fill"></div>
-      <button class="pwr" id="pwr" aria-pressed="true" aria-label="Ligar ou desligar a luz"><svg class="sun-ic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="12" r="4.6"/><g stroke="currentColor" stroke-width="2.1" stroke-linecap="round"><path d="M12 2.4v2.1M12 19.5v2.1M2.4 12h2.1M19.5 12h2.1M5.2 5.2l1.5 1.5M17.3 17.3l1.5 1.5M5.2 18.8l1.5-1.5M17.3 6.7l1.5-1.5"/></g></svg><svg class="pow-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="M12 3v8"/><path d="M6.4 6.6a8 8 0 1 0 11.2 0"/></svg></button>
+      <button class="pwr" id="pwr" aria-pressed="true" aria-label="Ligar ou desligar a luz"><svg class="sun-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" aria-hidden="true"><g class="rays"><line class="ray"/><line class="ray"/><line class="ray"/><line class="ray"/><line class="ray"/><line class="ray"/><line class="ray"/><line class="ray"/></g><circle class="core" cx="12" cy="12" r="4.6" fill="currentColor" stroke="currentColor" stroke-width="2.2"/><line class="stem" x1="12" y1="12" x2="12" y2="12" stroke-width="2.2"/></svg></button>
       <span class="val">80%</span>
     </div>
   </section>
@@ -489,7 +486,7 @@ body[data-bt="off"] #btBtn{background:rgb(var(--red)); color:#fff; box-shadow:in
 <script>
 'use strict';
 /* ================= Utilidades ================= */
-const VERSION='3.22';
+const VERSION='3.23';
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const css=document.documentElement.style;
@@ -848,7 +845,7 @@ function bounceOff(now){ if(!bounce.t0) return 0; const t=(now-bounce.t0)/1000; 
   return bounce.a*Math.exp(-t/.11)*Math.sin(2*Math.PI*t/.24); }
 function bounceLoop(sp){ sp.cb(sp.x); if(bounce.t0){ bounce.raf=requestAnimationFrame(()=>bounceLoop(sp)); } else bounce.raf=0; }
 function bounceKick(dir,sp){ bounce.a=dir*BOUNCE_A; bounce.t0=performance.now(); if(!bounce.raf) bounceLoop(sp); }   // rebote ao entrar/sair de um íman: sobe um pouco além do valor e assenta
-function HBar(el,{get,set,isOff=()=>false,spin=false,detents=null,fineBelow=0,icoSel='.ico'}){
+function HBar(el,{get,set,isOff=()=>false,spin=false,detents=null,fineBelow=0,icoSel='.ico',icoFn=null}){
   const fill=el.querySelector('.fill'), ico=el.querySelector(icoSel), val=el.querySelector('.val');
   const sp=new Spring(0,{response:.3}); let drag=null; const vt=tracker();
   let snapS={d:null,landed:true,dir:1};   // íman em que a barra está presa, e se já assentou nele (dispara o rebote)
@@ -857,6 +854,7 @@ function HBar(el,{get,set,isOff=()=>false,spin=false,detents=null,fineBelow=0,ic
   sp.cb=x0=>{ if(snapS.d!=null && !snapS.landed && Math.abs(x0-snapS.d)<.004){ snapS.landed=true; bounceKick(snapS.dir,sp); }
     const x=x0+bounceOff(performance.now()); const over=x>1?x-1:x<0?x:0, v=clamp(x,0,1), shown=isOff()?0:v, W=el.clientWidth||1;
     put('fill', shown.toFixed(4), v=>fill.style.transform=`scaleX(${v})`);
+    if(icoFn) icoFn(clamp(x0,0,1));
     put('elt', over ? (1+Math.abs(over)*.12).toFixed(4)+'|'+(1-Math.abs(over)*.08).toFixed(4)+'|'+(over>0?'0':'1') : '', v=>{ if(!v){ el.style.transform=''; return; }
       const [a,b,o]=v.split('|'); el.style.transform=`scale(${a},${b})`; el.style.transformOrigin= o==='0' ? '0% 50%' : '100% 50%'; });
     if(ico) put('ico', spin ? shown.toFixed(3) : shown.toFixed(3), v=>ico.style.transform=`scale(${.82+.3*v})`+(spin?` rotate(${v*90}deg)`:''));
@@ -892,7 +890,38 @@ function HBar(el,{get,set,isOff=()=>false,spin=false,detents=null,fineBelow=0,ic
   el.addEventListener('keydown',e=>{ const d={ArrowRight:.05,ArrowUp:.05,ArrowLeft:-.05,ArrowDown:-.05}[e.key]; if(d==null) return; e.preventDefault(); set(clamp(get()+d,.01,1)); sp.to(get(),{damping:1,response:.3}); });
   return { sync(anim){ if(drag) return; anim ? sp.to(get(),{damping:1,response:.3}) : sp.jump(get()); sp.cb(sp.x); } };
 }
-const brightBar=HBar($('#bright'),{ spin:true, icoSel:'.sun-ic', detents:BRIGHT_DETENTS, fineBelow:.05, get:()=>TS().b, isOff:()=>!TS().on, set:v=>{ const st=TS(); st.on=true; st.b=v; commit(); } });
+
+/* ===== Sol -> ícone de ligar: uma só forma, animada por uma mola (interrompível) =====
+   Raios recolhem-se para o anel, o disco central passa a anel com uma abertura no topo,
+   e a haste nasce do centro. Tudo calculado a cada frame, por isso não há desfasagem. */
+let PM=0, BV=.8;   // PM: 0 = sol, 1 = ícone de ligar · BV: brilho atual (0..1)
+const SUNQ={svg:null,core:null,stem:null,rays:null,ray:[],cos:[],sin:[]};
+function initSun(){ const sv=$('#pwr .sun-ic'); if(!sv) return; SUNQ.svg=sv; SUNQ.core=sv.querySelector('.core'); SUNQ.stem=sv.querySelector('.stem'); SUNQ.rays=sv.querySelector('.rays'); SUNQ.ray=[...sv.querySelectorAll('.ray')];
+  for(let k=0;k<8;k++){ const a=(-90+45*k)*Math.PI/180; SUNQ.cos.push(Math.cos(a)); SUNQ.sin.push(Math.sin(a)); } }
+function drawSun(){
+  const q=SUNQ, p=PM, v=BV; if(!q.svg) return;
+  const r=4.6+3.4*p, C=2*Math.PI*r, L=C*(1-.25*p);            // disco (r 4.6) -> anel (r 8) com 25% de abertura
+  q.core.setAttribute('r', r.toFixed(3));
+  q.core.setAttribute('stroke-width', (2.2+.3*p).toFixed(3));
+  q.core.setAttribute('fill-opacity', clamp(1-p*1.6,0,1).toFixed(3));
+  q.core.setAttribute('stroke-dasharray', L.toFixed(2)+' '+C.toFixed(2));
+  q.core.setAttribute('transform','rotate(-45 12 12)');        // a abertura fica no topo
+  q.rays.setAttribute('transform','rotate('+(90*p).toFixed(2)+' 12 12)');
+  q.rays.setAttribute('opacity', clamp(1-p,0,1).toFixed(3));
+  q.rays.setAttribute('stroke-width', (2.1+.4*p).toFixed(3));
+  const r1=7.5+.6*p, r2=9.6-1.6*p;
+  q.ray.forEach((ln,k)=>{ ln.setAttribute('x1',(12+q.cos[k]*r1).toFixed(2)); ln.setAttribute('y1',(12+q.sin[k]*r1).toFixed(2));
+    ln.setAttribute('x2',(12+q.cos[k]*r2).toFixed(2)); ln.setAttribute('y2',(12+q.sin[k]*r2).toFixed(2)); });
+  q.stem.setAttribute('y1',(12-9*p).toFixed(2)); q.stem.setAttribute('y2',(12-p).toFixed(2));
+  q.stem.setAttribute('opacity', clamp(p,0,1).toFixed(3));
+  q.stem.setAttribute('stroke-width', (2.2+.3*p).toFixed(3));
+  const sc=(.82+.3*v)*(1-p)+.92*p, rot=90*v*(1-p);             // o brilho continua a rodar o sol; o ícone de ligar fica direito
+  q.svg.style.transform=`scale(${sc.toFixed(4)}) rotate(${rot.toFixed(2)}deg)`;
+}
+const pwrS=new Spring(0,{damping:.8,response:.46});
+pwrS.cb=x=>{ PM=x; drawSun(); };
+
+const brightBar=HBar($('#bright'),{ spin:true, icoSel:'#nosuch', icoFn:v=>{ BV=v; drawSun(); }, detents:BRIGHT_DETENTS, fineBelow:.05, get:()=>TS().b, isOff:()=>!TS().on, set:v=>{ const st=TS(); st.on=true; st.b=v; commit(); } });
 const speedBar=HBar($('#speedBar'),{ get:()=>TS().speed/100, set:v=>{ TS().speed=Math.round(v*100); commit(); } });
 
 /* ================= Favoritas e brancos ================= */
@@ -1044,7 +1073,7 @@ function renderControls(){
   $$('.fav[data-i]').forEach(f=>f.setAttribute('aria-current', st.white==null && st.fav===+f.dataset.i));
   $$('.white').forEach((w,i)=>w.setAttribute('aria-pressed', st.white===i));
   brightBar.sync(true); speedBar.sync(true);
-  const pb=$('#pwr'); pb.setAttribute('aria-pressed', st.on); pb.setAttribute('aria-label', st.on?'Desligar a luz':'Ligar a luz');
+  pwrS.to(st.on?0:1); const pb=$('#pwr'); pb.setAttribute('aria-pressed', st.on); pb.setAttribute('aria-label', st.on?'Desligar a luz':'Ligar a luz');
   $('#stName').textContent= st.fx ? FX.find(f=>f.id===st.fx)?.name : st.white!=null ? 'Branco '+WHITES[st.white].name.toLowerCase() : colourName(st.h,st.s);
   $('#stSub').textContent= (tg?tg.obj.name:'Sem aparelho')+' · '+(st.on ? (st.fx?'Efeito · ':'')+Math.round(st.b*100)+'%' : 'Desligada');
   $('#stRgb').textContent= st.fx ? 'A correr na própria fita' : 'A fita recebe '+ledFor(st).join(' · ');
@@ -1133,6 +1162,7 @@ setTimeout(checkUpdate,1500);
 
 /* ================= Arranque ================= */
 load();
+initSun(); pwrS.jump(TS().on?0:1); drawSun();
 renderFxGrid();
 select(store.ui.tab && $('#v-'+store.ui.tab) ? store.ui.tab : 'ajustes', false);
 renderAll(false);

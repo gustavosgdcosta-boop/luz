@@ -173,9 +173,9 @@ main{position:relative; z-index:1; flex:1; min-height:0; width:100%; max-width:1
 .pill svg{width:18px; height:18px}
 
 /* ================= LUZES ================= */
-#v-luzes .scroll{height:100%; overflow-y:auto; overflow-x:hidden; -webkit-overflow-scrolling:touch; scrollbar-width:none; padding:34px 24px 24px; margin:-34px -24px 0;
+#v-luzes .scroll, #v-horarios .scroll{height:100%; overflow-y:auto; overflow-x:hidden; -webkit-overflow-scrolling:touch; scrollbar-width:none; padding:34px 24px 24px; margin:-34px -24px 0;
   -webkit-mask:linear-gradient(180deg, #000 0, #000 calc(100% - 22px), transparent 100%); mask:linear-gradient(180deg, #000 0, #000 calc(100% - 22px), transparent 100%)}
-#v-luzes .scroll::-webkit-scrollbar{display:none}
+#v-luzes .scroll::-webkit-scrollbar, #v-horarios .scroll::-webkit-scrollbar{display:none}
 .master{display:flex; align-items:center; gap:14px; padding:14px 16px; border-radius:28px}
 .master .ib{width:46px; height:46px} .master .tx{flex:1; min-width:0}
 .master b{display:block; font:600 17px/1.2 var(--font)} .master small{display:block; font-size:14px; color:var(--ink-2); margin-top:2px}
@@ -223,14 +223,30 @@ main{position:relative; z-index:1; flex:1; min-height:0; width:100%; max-width:1
 .speed .hbar{grid-area:auto; height:48px; border-radius:24px}
 
 /* ================= HORÁRIOS ================= */
-#v-horarios{display:grid; place-items:center}
-.soon{width:min(520px, 100%); border-radius:34px; padding:26px 22px 22px}
-.soon .big-ic{width:64px; height:64px; border-radius:20px; display:grid; place-items:center; margin-bottom:16px} .soon .big-ic svg{width:32px; height:32px}
-.soon h2{margin:0 0 6px; font:700 24px/1.15 var(--display)} .soon p{margin:0; color:var(--ink-2); font-size:15px; line-height:1.4}
-.plan{margin:18px 0 0; padding:0; list-style:none}
-.plan li{display:flex; align-items:center; gap:12px; min-height:48px; border-top:.5px solid var(--sep)}
-.plan li svg{width:22px; height:22px; color:rgb(var(--tint)); flex:none}
-
+#v-horarios .wrap{display:grid; gap:var(--gap); max-width:760px; margin:0 auto}
+.sch-grid{display:grid; gap:var(--gap); grid-template-columns:minmax(0,1fr)}
+.sch-target{width:100%; text-align:left}
+.sch-target .chev{display:block; margin:0}
+.sch{border-radius:var(--r); padding:16px; min-width:0}
+.sch-head{display:flex; align-items:center; gap:14px}
+.sch-head .ib{width:46px; height:46px}
+.sch-head .tx{flex:1; min-width:0}
+.sch-head b{display:block; font:600 17px/1.2 var(--font)}
+.sch-head small{display:block; font-size:14px; color:var(--ink-2); margin-top:2px; overflow-wrap:anywhere}
+.sch-body{display:flex; flex-direction:column; gap:14px; margin-top:14px; transition:opacity .3s}
+.sch.off .sch-body{opacity:.5}
+.sch-row{display:flex; align-items:center; justify-content:space-between; gap:12px}
+.sch-row > span{font:600 15px var(--font); color:var(--ink-2)}
+.sch-time{font:700 28px/1 var(--rounded); font-variant-numeric:tabular-nums; color:var(--ink); background:var(--fill-2); border:0; border-radius:16px; padding:10px 14px; min-width:120px; text-align:center; color-scheme:light dark; -webkit-user-select:auto; user-select:auto}
+.days{display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); gap:6px}
+.day{height:42px; border-radius:21px; background:var(--fill-2); color:var(--ink-2); font:600 15px var(--font); transition:background-color .2s, color .2s, transform .3s cubic-bezier(.3,1.6,.5,1)}
+.day:active{transform:scale(.9)}
+.day[aria-pressed="true"]{background:rgb(var(--tint)); color:#fff}
+.sch-note{margin:2px 6px 0; font-size:14px; line-height:1.4; color:var(--ink-2)}
+.sch-note.small{font-size:13px; color:var(--ink-3)}
+.sch-foot{display:flex; flex-direction:column; align-items:flex-start; gap:6px; padding:0 4px 4px}
+.sch-foot .link-btn{margin:0 0 0 -8px}
+@media (min-width:700px) and (min-height:600px){ .sch-grid{grid-template-columns:repeat(2,minmax(0,1fr))} .sch{padding:22px} .sch-time{font-size:34px} }
 /* ================= Separadores (lente arrastável) ================= */
 nav.tabs{position:fixed; z-index:9; left:max(var(--pad), env(safe-area-inset-left)); right:max(var(--pad), env(safe-area-inset-right));
   bottom:calc(12px + env(safe-area-inset-bottom)); height:var(--tabh); border-radius:calc(var(--tabh) / 2); padding:4px; display:grid; grid-auto-flow:column; grid-auto-columns:1fr; touch-action:none; background:var(--g-reg)}
@@ -424,16 +440,21 @@ body[data-bt="off"] #btBtn{background:var(--bt-red); color:#fff; box-shadow:inse
   </section>
 
   <section id="v-horarios" class="view" hidden>
-    <div class="soon glass module">
-      <div class="big-ic tinted"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 1.8h6a1 1 0 1 1 0 2h-2v1.3a8.6 8.6 0 1 1-2 0V3.8H9a1 1 0 1 1 0-2Zm3 7a1 1 0 0 0-1 1v4.1c0 .3.1.5.3.7l2.4 2.4a1 1 0 0 0 1.4-1.4L13 13.5V9.8a1 1 0 0 0-1-1Z"/></svg></div>
-      <h2>Horários a caminho</h2>
-      <p>Ainda a confirmar se a fita consegue guardar horários sozinha. Sem isso, só funcionariam com a app aberta.</p>
-      <ul class="plan">
-        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 7v5l3 2"/><circle cx="12" cy="12" r="9"/></svg>Desligar daqui a 15, 30, 60 ou 90 minutos</li>
-        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 3v2M5.6 5.6l1.4 1.4M3 12h2M19 12h2M17 7l1.4-1.4M7 16a5 5 0 1 1 10 0"/><path d="M3 20h18"/></svg>Acender devagar ao acordar</li>
-        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5Z"/></svg>Apagar devagar ao deitar</li>
-      </ul>
-    </div>
+    <div class="scroll"><div class="wrap">
+      <button class="master glass gi sch-target" id="schTarget" aria-haspopup="menu"><span class="ib"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2.5" y="8.5" width="19" height="7" rx="3.5"/><circle cx="7" cy="12" r="1.2" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.2" fill="currentColor" stroke="none"/><circle cx="17" cy="12" r="1.2" fill="currentColor" stroke="none"/></svg></span><span class="tx"><small>Horários de</small><b id="schTargetName">—</b></span><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></button>
+      <div class="sch-grid">
+        <div class="sch glass module off" data-k="on">
+          <div class="sch-head"><span class="ib"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 3v2M5.6 5.6l1.4 1.4M3 12h2M19 12h2M17 7l1.4-1.4M7 16a5 5 0 1 1 10 0"/><path d="M3 20h18"/></svg></span><span class="tx"><b>Acender</b><small class="sch-sum"></small></span><button class="switch" role="switch" aria-checked="false" aria-label="Ativar o horário de acender"></button></div>
+          <div class="sch-body"><div class="sch-row"><span>Hora</span><input class="sch-time" type="time" value="19:00" aria-label="Hora de acender"></div><div class="days"></div></div>
+        </div>
+        <div class="sch glass module off" data-k="off">
+          <div class="sch-head"><span class="ib"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5Z"/></svg></span><span class="tx"><b>Apagar</b><small class="sch-sum"></small></span><button class="switch" role="switch" aria-checked="false" aria-label="Ativar o horário de apagar"></button></div>
+          <div class="sch-body"><div class="sch-row"><span>Hora</span><input class="sch-time" type="time" value="19:00" aria-label="Hora de apagar"></div><div class="days"></div></div>
+        </div>
+      </div>
+      <div class="sch-foot"><p class="sch-note" id="schNote"></p><button class="link-btn" id="schClock">Acertar o relógio da fita</button>
+        <p class="sch-note small">A fita guarda um horário para acender e outro para apagar, nos dias escolhidos. Não faz contagem decrescente nem acende devagar.</p></div>
+    </div></div>
   </section>
 </main>
 
@@ -475,7 +496,7 @@ body[data-bt="off"] #btBtn{background:var(--bt-red); color:#fff; box-shadow:inse
 <script>
 'use strict';
 /* ================= Utilidades ================= */
-const VERSION='3.33';
+const VERSION='3.34';
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const css=document.documentElement.style;
@@ -602,8 +623,12 @@ const ORDER=['power','color','fx','speed','bright'];
 const conns=new Map();
 function C(id){ if(!conns.has(id)) conns.set(id,{bt:null, ch:null, busy:false, pending:{}, last:{}, status:'off', tries:0, manual:false, onDisc:null}); return conns.get(id); }
 function queue(id,type,val){ const c=C(id), k=JSON.stringify(val); if(c.last[type]===k && !(type in c.pending)) return; c.pending[type]=val; pump(id); }
+function sendRaw(id,bytes){ const c=C(id); if(!c.ch) return false; (c.raw||(c.raw=[])).push(bytes); pump(id); return true; }
 async function pump(id){
   const c=C(id); if(c.busy||!c.ch) return;
+  if(c.raw&&c.raw.length){ const b=c.raw.shift(); c.busy=true;
+    try{ await c.ch.writeValue(new Uint8Array(b)); }catch(e){ console.warn('Falha ao enviar', e); }
+    c.busy=false; setTimeout(()=>pump(id),40); return; }
   const t=ORDER.find(x=>x in c.pending); if(!t) return;
   const v=c.pending[t]; delete c.pending[t]; c.busy=true;
   try{ await c.ch.writeValue(new Uint8Array(CMD[t](v))); c.last[t]=JSON.stringify(v); if(t==='fx') delete c.last.color; if(t==='color') delete c.last.fx; }
@@ -656,16 +681,17 @@ async function attach(id,quiet,isNew){
     const srv=await c.bt.gatt.connect(), svc=await srv.getPrimaryService(SVC);
     c.ch=await svc.getCharacteristic(CHR); c.tries=0; c.last={}; c.pending={};
     setStatus(id,'on');
+    syncStrip(id);
     push(id);
   }catch(e){ c.ch=null; setStatus(id,'off'); if(!quiet){ const m=explain(e); if(m) toast(m,3800); } }
 }
 function onDisc(id){
-  const c=C(id); c.ch=null; c.pending={}; setStatus(id,'off');
+  const c=C(id); c.ch=null; c.pending={}; c.raw=[]; setStatus(id,'off');
   if(c.manual) return;
   if(c.tries<3){ const wait=1000*2**c.tries++; setTimeout(()=>{ if(!c.ch&&c.bt&&!c.manual) attach(id,true); },wait); }
 }
 function disconnect(id){ const c=C(id); c.manual=true; try{ c.bt?.gatt?.disconnect(); }catch(e){} c.ch=null; setStatus(id,'off'); }
-function setStatus(id,s){ C(id).status=s; renderStatus(); if(document.body.dataset.tab==='luzes') renderLuzes(); }
+function setStatus(id,s){ C(id).status=s; renderStatus(); const tb=document.body.dataset.tab; if(tb==='luzes') renderLuzes(); if(tb==='horarios') renderSched(); }
 const statusTxt=id=>({on:'Ligada', connecting:'A ligar…', off:'Sem ligação'})[C(id).status];
 
 /* ================= Efeitos (correm na própria fita) ================= */
@@ -1050,16 +1076,52 @@ $('#addBtn').onclick=e=>openMenu(e.currentTarget,[
   {text:'Adicionar aparelho', sub:'Procura fitas ELK-BLEDOM', icon:ICON.bt, onClick:()=>addDevice(false)},
   {text:'Mostrar todos os aparelhos', sub:'Se a tua luz não aparecer', icon:ICON.list, onClick:()=>addDevice(true)},
   {sep:true}, {text:'Criar grupo', icon:ICON.group, onClick:()=>openGroup()}]);
-$('#titleBtn').onclick=e=>{ if(document.body.dataset.tab!=='ajustes') return; const t=store.ui.target||{}, items=[];
+function targetMenu(anchor){ const t=store.ui.target||{}, items=[];
   if(store.devices.length){ items.push({label:'Aparelhos'}); store.devices.forEach(d=>items.push({text:d.name, sub:statusTxt(d.id), icon:ICON.strip, checked:t.kind==='device'&&t.id===d.id, onClick:()=>setTarget('device',d.id)})); }
   if(store.groups.length){ items.push({label:'Grupos'}); store.groups.forEach(g=>items.push({text:g.name, sub:g.members.length+(g.members.length===1?' aparelho':' aparelhos'), icon:ICON.group, checked:t.kind==='group'&&t.id===g.id, onClick:()=>setTarget('group',g.id)})); }
-  items.push({sep:true},{text:'Gerir luzes e grupos', icon:ICON.grid, onClick:()=>select('luzes')}); openMenu(e.currentTarget,items); };
+  items.push({sep:true},{text:'Gerir luzes e grupos', icon:ICON.grid, onClick:()=>select('luzes')}); openMenu(anchor,items); }
+$('#titleBtn').onclick=e=>{ if(document.body.dataset.tab==='ajustes') targetMenu(e.currentTarget); };
+$('#schTarget').onclick=e=>targetMenu(e.currentTarget);
 $('#btBtn').onclick=e=>{ const ms=membersOf(target()), items=[{label:'Ligação'}];
   ms.forEach(d=>{ const s=C(d.id).status; items.push({text:d.name, sub: s==='on'?'Ligada · toca para desligar' : s==='connecting'?'A ligar…':'Sem ligação · toca para ligar', dot:s==='on'?'on':s==='connecting'?'busy':'',
     onClick:()=> s==='on' ? disconnect(d.id) : connectDevice(d.id,false)}); });
   if(!ms.length) items.push({text:'Sem aparelhos', sub:'Adiciona um no separador Luzes', icon:ICON.grid, onClick:()=>select('luzes')});
   items.push({sep:true},{text:'Mostrar todos os aparelhos', sub:'Se a fita não aparecer', icon:ICON.list, onClick:()=>{ const d=ms.find(m=>C(m.id).status!=='on')||ms[0]; d ? connectDevice(d.id,true) : addDevice(true); }},{foot:'Luz · versão '+VERSION});
   openMenu(e.currentTarget,items); };
+
+/* ================= Horários (a própria fita cumpre: 1 para acender + 1 para apagar, com dias) =================
+   Comandos conhecidos do ELK-BLEDOM (Lotus Lantern): relógio 7E 07 83 hh mm ss dia FF EF (dia 1=seg … 7=dom)
+   e alarme 7E 08 82 hh mm ss tipo (80|dias) EF (tipo 0=acender, 1=apagar; dias: bit0=seg … bit6=dom).
+   Apagar um alarme: 7E 08 82 FF FF FF tipo 00 EF. O relógio da fita tem de estar certo, por isso acerta-se a cada ligação. */
+const SCH_KINDS=['on','off'], DAYS=['segunda','terça','quarta','quinta','sexta','sábado','domingo'], DAYSH=['Seg','Ter','Qua','Qui','Sex','Sáb','Dom'], DAYL=['S','T','Q','Q','S','S','D'];
+const schedFor=o=>o.sched||(o.sched={on:{en:false,t:'19:00',days:127},off:{en:false,t:'23:00',days:127}});
+function clockPacket(){ const n=new Date(); return [0x7e,0x07,0x83,n.getHours(),n.getMinutes(),n.getSeconds(),n.getDay()||7,0xff,0xef]; }
+function schedPackets(sc){ return SCH_KINDS.map((k,i)=>{ const x=sc[k];
+  if(!x.en) return [0x7e,0x08,0x82,0xff,0xff,0xff,i,0x00,0xef];
+  const [h,m]=x.t.split(':').map(Number); return [0x7e,0x08,0x82,h,m,0,i,0x80|(x.days&0x7f),0xef]; }); }
+function syncStrip(id){ const d=dev(id); if(!d) return; sendRaw(id,clockPacket()); if(d.sched&&d.sched.touched) schedPackets(d.sched).forEach(p=>sendRaw(id,p)); }
+const daysText=m=> m===127?'Todos os dias' : m===31?'Dias úteis' : m===96?'Fins de semana' : DAYSH.filter((_,i)=>m>>i&1).join(', ');
+function renderSched(){
+  if(document.body.dataset.tab!=='horarios') return;
+  const tg=target(); $('#schTarget').disabled=!tg; if(!tg){ setText($('#schTargetName'),'Sem aparelhos'); return; }
+  const sc=schedFor(tg.obj); setText($('#schTargetName'),tg.obj.name);
+  $$('.sch').forEach(card=>{ const x=sc[card.dataset.k];
+    setAttr(card.querySelector('.switch'),'aria-checked',x.en); card.classList.toggle('off',!x.en); card.querySelector('.ib').classList.toggle('on',x.en);
+    const ti=card.querySelector('.sch-time'); if(ti.value!==x.t && document.activeElement!==ti) ti.value=x.t;
+    card.querySelectorAll('.day').forEach((b,i)=>setAttr(b,'aria-pressed',!!(x.days>>i&1)));
+    setText(card.querySelector('.sch-sum'), x.en ? daysText(x.days)+' · '+x.t : 'Desligado'); });
+  const ms=membersOf(tg), all=ms.length>0 && ms.every(d=>C(d.id).status==='on');
+  setText($('#schNote'), all ? 'A fita guarda estes horários e cumpre-os sozinha, mesmo com a app fechada.' : 'Sem ligação à fita. Os horários seguem quando ligares.');
+}
+function schedChanged(){ const tg=target(); if(!tg) return; const sc=tg.obj.sched, ms=membersOf(tg); sc.touched=true;
+  ms.forEach(d=>{ if(d!==tg.obj) d.sched=clone(sc); syncStrip(d.id); }); save(); renderSched();
+  toast(ms.length && ms.every(d=>C(d.id).ch) ? 'Enviado à fita' : 'Guardado. Segue para a fita quando ligares.'); }
+$$('.sch').forEach(card=>{ const k=card.dataset.k, days=card.querySelector('.days');
+  DAYS.forEach((n,i)=>{ const b=document.createElement('button'); b.className='day'; b.textContent=DAYL[i]; b.setAttribute('aria-label',n); b.setAttribute('aria-pressed','false');
+    b.onclick=()=>{ const tg=target(); if(!tg) return; const x=schedFor(tg.obj)[k], m=x.days^(1<<i); if(!m) return; x.days=m; x.en=true; schedChanged(); }; days.appendChild(b); });
+  card.querySelector('.switch').onclick=()=>{ const tg=target(); if(!tg) return; const x=schedFor(tg.obj)[k]; x.en=!x.en; schedChanged(); };
+  card.querySelector('.sch-time').addEventListener('change',e=>{ const tg=target(); if(!tg||!/^\d\d:\d\d$/.test(e.target.value)) return; const x=schedFor(tg.obj)[k]; x.t=e.target.value; x.en=true; schedChanged(); }); });
+$('#schClock').onclick=()=>{ const ms=membersOf(target()); const sent=ms.filter(d=>sendRaw(d.id,clockPacket())).length; toast(sent ? 'Relógio da fita acertado' : 'Liga primeiro a fita por Bluetooth.'); };
 
 /* ================= Desenho do estado ================= */
 const EL={pwr:$('#pwr'), stName:$('#stName'), stSub:$('#stSub'), stRgb:$('#stRgb'), orb:$('#orb'), fxStop:$('#fxStop')};
@@ -1103,7 +1165,7 @@ function renderHeader(){
   $('#title').textContent=t; $('#titleBtn').disabled= tab!=='ajustes';
   $('#titleBtn').setAttribute('aria-label', tab==='ajustes' ? 'A ajustar: '+t+'. Toca para escolher outra luz' : t);
 }
-function renderAll(anim){ renderHeader(); renderFavs(); renderLuzes(); renderStatus(); renderAmbient(); placeKnob(!!anim); }
+function renderAll(anim){ renderHeader(); renderFavs(); renderLuzes(); renderSched(); renderStatus(); renderAmbient(); placeKnob(!!anim); }
 
 /* ================= Separadores: tocar ou arrastar a lente ================= */
 const nav=$('#tabs'), lens=$('#lens'), tabBtns=$$('nav.tabs button[data-tab]');
@@ -1115,7 +1177,7 @@ function select(tab,anim=true){
   closeMenu(); if(editing && tab!=='ajustes'){ editing=false; renderFavs(); }
   document.body.dataset.tab=tab; store.ui.tab=tab; save();
   tabBtns.forEach(b=>b.setAttribute('aria-selected', b.dataset.tab===tab)); $$('section.view').forEach(v=>v.hidden= v.id!=='v-'+tab);
-  renderHeader(); placeLens(anim); ls.to(1,{damping:.6,response:.35}); scheduleRender();
+  renderHeader(); renderSched(); placeLens(anim); ls.to(1,{damping:.6,response:.35}); scheduleRender();
   if(tab==='ajustes') requestAnimationFrame(()=>{ layoutVars(); sizeWheel(); brightBar.sync(false); });
   if(tab==='efeitos') requestAnimationFrame(()=>speedBar.sync(false));
 }

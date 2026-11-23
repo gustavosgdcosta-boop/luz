@@ -223,8 +223,9 @@ main{position:relative; z-index:1; flex:1; min-height:0; width:100%; max-width:1
 .speed .hbar{grid-area:auto; height:48px; border-radius:24px}
 
 /* ================= HORÁRIOS ================= */
-#v-horarios .wrap{display:flex; flex-direction:column; gap:10px; max-width:760px; margin:0 auto}
-.sch-grid{display:flex; flex-direction:column; gap:10px; min-height:0}
+#v-horarios .wrap{display:flex; flex-direction:column; gap:10px; max-width:760px; margin:0 auto; min-height:100%}
+.sch-grid{display:flex; flex-direction:column; gap:10px; min-height:0; flex:1}
+.sch-grid > .sch{flex:1}
 .sch-target{width:100%; text-align:left; padding:10px 14px; gap:12px}
 .sch-target .ib{width:40px; height:40px}
 .sch-target .chev{display:block; margin:0}
@@ -515,7 +516,7 @@ body[data-bt="off"] #btBtn{background:var(--bt-red); color:#fff; box-shadow:inse
 <script>
 'use strict';
 /* ================= Utilidades ================= */
-const VERSION='3.35';
+const VERSION='3.36';
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const css=document.documentElement.style;

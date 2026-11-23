@@ -207,8 +207,15 @@ main{position:relative; z-index:1; flex:1; min-height:0; width:100%; max-width:1
 
 /* ================= EFEITOS ================= */
 #v-efeitos{display:grid; gap:var(--gap); grid-template-rows:minmax(0,1fr) auto}
-.fx-grid{display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); grid-auto-rows:minmax(0,1fr); gap:10px; min-height:0}
-.fxc{--press:.96; position:relative; border-radius:24px; padding:10px 12px; display:flex; align-items:center; gap:12px; text-align:left; min-height:0; overflow:hidden}
+.fx-scroll{min-height:0; overflow-y:auto; overflow-x:hidden; scrollbar-width:none; -webkit-overflow-scrolling:touch; margin:0 -8px; padding:2px 8px 14px;
+  -webkit-mask:linear-gradient(180deg, #000 0, #000 calc(100% - 18px), transparent 100%); mask:linear-gradient(180deg, #000 0, #000 calc(100% - 18px), transparent 100%)}
+.fx-scroll::-webkit-scrollbar{display:none}
+.fx-head{display:flex; align-items:baseline; gap:10px; margin:16px 4px 8px; flex-wrap:wrap}
+.fx-sec:first-child .fx-head{margin-top:2px}
+.fx-head h3{margin:0; font:600 20px/1.2 var(--display); letter-spacing:-.012em}
+.fx-head span{font-size:13px; color:var(--ink-2)}
+.fx-grid{display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:10px; min-height:0}
+.fxc{--press:.96; position:relative; border-radius:24px; padding:10px 12px; display:flex; align-items:center; gap:12px; text-align:left; min-height:62px; overflow:hidden}
 .fxc .pv{flex:none; width:40px; height:40px; border-radius:50%; background:var(--pv); box-shadow:inset 0 0 0 .5px rgba(0,0,0,.12), inset 0 -3px 6px rgba(0,0,0,.18); animation-play-state:paused !important}
 .fxc[aria-pressed="true"] .pv{animation-play-state:running !important}
 .pv.fade{animation:spin 5s linear infinite} .pv.jump{animation:spin 3s steps(var(--n,7)) infinite}
@@ -220,7 +227,24 @@ main{position:relative; z-index:1; flex:1; min-height:0; width:100%; max-width:1
 .fxc[aria-pressed="true"]{background:linear-gradient(160deg, rgba(var(--tint),.3), rgba(var(--tint),.1) 70%), var(--g-reg)}
 .fxc .chk{position:absolute; z-index:4; top:8px; right:8px; width:22px; height:22px; border-radius:50%; background:rgb(var(--tint)); color:#fff; display:grid; place-items:center; opacity:0; transform:scale(.4); transition:opacity .2s, transform .4s cubic-bezier(.3,1.7,.5,1)}
 .fxc .chk svg{width:13px; height:13px} .fxc[aria-pressed="true"] .chk{opacity:1; transform:none}
-.speed .hbar{grid-area:auto; height:48px; border-radius:24px}
+.dock{overflow:hidden}
+.dock .mh{margin-bottom:8px}
+.dock .mh h2{flex:1; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.tag{flex:none; font:600 12px var(--font); padding:4px 9px; border-radius:12px; background:var(--fill-2); color:var(--ink-2); white-space:nowrap}
+.tag.app{background:rgba(var(--tint),.16); color:rgb(var(--tint))}
+.dock-ctrls{display:grid; grid-template-columns:repeat(auto-fit, minmax(250px,1fr)); gap:8px 14px}
+.ctl{display:grid; grid-template-columns:84px minmax(0,1fr); align-items:center; gap:8px}
+.cap{font:600 14px var(--font); color:var(--ink-2)}
+.dock .hbar{grid-area:auto; height:44px; border-radius:22px}
+.dock .hbar .val{font-size:15px; right:16px}
+.pick{display:flex; align-items:center; gap:8px; margin-top:8px}
+.pick > span{flex:none; width:84px; font:600 14px var(--font); color:var(--ink-2)}
+.dots{display:flex; gap:9px; overflow-x:auto; scrollbar-width:none; padding:4px 3px; min-width:0}
+.dots::-webkit-scrollbar{display:none}
+.dots button{flex:none; width:34px; height:34px; border-radius:50%; background:rgb(var(--c,128,128,128)); box-shadow:inset 0 1.5px 1px rgba(255,255,255,.55), inset 0 0 0 1px rgba(255,255,255,.28), 0 0 0 .5px rgba(0,0,0,.14); font:700 14px var(--font); color:var(--ink-2)}
+.dots button.auto{background:var(--fill-2); box-shadow:inset 0 0 0 1px var(--g-edge)}
+.dots button[aria-pressed="true"]{outline:2.5px solid var(--ink); outline-offset:2px}
+.dots.favs-row{margin-top:2px; padding-left:3px}
 
 /* ================= HORÁRIOS ================= */
 #v-horarios .wrap{display:flex; flex-direction:column; gap:10px; max-width:760px; margin:0 auto; min-height:100%}
@@ -363,11 +387,11 @@ nav.tabs button.hover{transform:scale(1.1)}
   .tile{height:150px; padding:18px; border-radius:30px} .tile .ib{width:48px; height:48px} .tile .ib svg{width:25px; height:25px}
   .tile b{font-size:18px} .tile small{font-size:14px}
   .master{padding:18px 22px; border-radius:32px} .sect h2{margin:28px 4px 14px; font-size:22px}
-  .fx-grid{grid-template-columns:repeat(5, minmax(0,1fr)); gap:18px}
+  .fx-grid{grid-template-columns:repeat(auto-fill, minmax(176px,1fr)); gap:16px} .fx-head{margin:22px 6px 12px} .fx-head h3{font-size:22px}
   .fxc{flex-direction:column; align-items:flex-start; justify-content:space-between; padding:18px; border-radius:30px}
   .fxc .pv{width:64px; height:64px} .fxc b{font-size:18px} .fxc small{font-size:14px; white-space:normal}
   .fxc .chk{top:16px; right:16px; width:26px; height:26px}
-  .speed .hbar{height:60px; border-radius:30px}
+  .dock .hbar{height:54px; border-radius:27px} .ctl{grid-template-columns:96px minmax(0,1fr)} .pick > span{width:96px}
 }
 @media (min-width:700px) and (min-height:600px) and (orientation:landscape){
   #v-ajustes{grid-template-columns:var(--wcol, 50%) minmax(0,1fr); grid-template-rows:minmax(0,1fr) auto auto; grid-template-areas:"wheel state" "wheel palette" "wheel bright"}
@@ -375,7 +399,7 @@ nav.tabs button.hover{transform:scale(1.1)}
 @media (min-width:700px) and (min-height:600px) and (orientation:portrait){
   #v-ajustes{grid-template-columns:var(--wcol, 60%) minmax(0,1fr); grid-template-rows:var(--wrow, minmax(0,1fr)) auto auto; grid-template-areas:"wheel state" "palette palette" "bright bright"}
   .state .hero{flex-direction:column; align-items:flex-start; gap:18px}
-  .fx-grid{grid-template-columns:repeat(2, minmax(0,1fr))}
+  .fx-grid{grid-template-columns:repeat(auto-fill, minmax(230px,1fr))}
   .fxc{flex-direction:row; align-items:center; justify-content:flex-start}
 }
 /* Botão de ligar dentro da barra do brilho: o sol gira com o brilho; ao desligar, transforma-se no ícone de ligar */
@@ -449,14 +473,17 @@ body[data-bt="off"] #btBtn{background:var(--bt-red); color:#fff; box-shadow:inse
   </section>
 
   <section id="v-efeitos" class="view" hidden>
-    <div class="fx-grid" id="fxGrid"></div>
-    <div class="speed glass module">
-      <div class="mh"><h2>Velocidade</h2><button class="link-btn" id="fxStop" hidden>Parar efeito</button></div>
-      <div class="hbar glass" id="speedBar" role="slider" aria-label="Velocidade do efeito" aria-valuemin="0" aria-valuemax="100" tabindex="0">
-        <div class="fill"></div>
-        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 3 5 14h6l-1 7 8-11h-6l1-7Z"/></svg>
-        <span class="val">50%</span>
+    <div class="fx-scroll"><div id="fxGrid"></div></div>
+    <div class="dock glass module" id="fxDock" hidden>
+      <div class="mh"><h2 id="fxName">—</h2><span class="tag" id="fxTag"></span><button class="link-btn" id="fxStop">Parar</button></div>
+      <div class="dock-ctrls">
+        <div class="ctl" data-c="speed"><span class="cap">Velocidade</span><div class="hbar glass" id="speedBar" role="slider" aria-label="Velocidade do efeito" aria-valuemin="0" aria-valuemax="100" tabindex="0"><div class="fill"></div><span class="val">50%</span></div></div>
+        <div class="ctl" data-c="inten"><span class="cap">Intensidade</span><div class="hbar glass" id="intBar" role="slider" aria-label="Intensidade do efeito" aria-valuemin="0" aria-valuemax="100" tabindex="0"><div class="fill"></div><span class="val">60%</span></div></div>
+        <div class="ctl" data-c="sens"><span class="cap">Sensibilidade</span><div class="hbar glass" id="sensBar" role="slider" aria-label="Sensibilidade à música" aria-valuemin="0" aria-valuemax="100" tabindex="0"><div class="fill"></div><span class="val">50%</span></div></div>
       </div>
+      <div class="pick" id="colPick" hidden><span>Cor</span><div class="dots" id="colDots"></div></div>
+      <div class="pick" id="palRow" hidden><span>Cores</span><div class="dots" id="palDots"></div></div>
+      <div class="pick" id="palFavsRow" hidden><span></span><div class="dots favs-row" id="palFavs"></div></div>
     </div>
   </section>
 
@@ -516,7 +543,7 @@ body[data-bt="off"] #btBtn{background:var(--bt-red); color:#fff; box-shadow:inse
 <script>
 'use strict';
 /* ================= Utilidades ================= */
-const VERSION='3.36';
+const VERSION='3.38';
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const css=document.documentElement.style;
@@ -579,7 +606,7 @@ const MAX_FAVS=14;
 
 /* ================= Dados guardados ================= */
 const KEY='luz.v3';
-const defState=()=>({on:true,h:28,s:.8,b:.8,white:null,fav:null,fx:null,speed:50});
+const defState=()=>({on:true,h:28,s:.8,b:.8,white:null,fav:null,fx:null,speed:50,inten:.6,sens:.5,fxcol:null,pal:null});
 const newDevice=(name,btName)=>({id:uid('d'), name, proto:'elk', btId:null, btName:btName||'ELK-BLEDOM01', state:defState()});
 let store;
 function load(){
@@ -638,8 +665,11 @@ const CMD={
   fx:m=>[0x7e,0x00,0x03,m,0x03,0x00,0x00,0x00,0xef],
   speed:v=>[0x7e,0x00,0x02,v,0x00,0x00,0x00,0x00,0xef],
   bright:b=>[0x7e,0x00,0x01,b,0x00,0x00,0x00,0x00,0xef],
+  mic:v=>[0x7e,0x04,0x07,v?1:0,0xff,0xff,0xff,0x00,0xef],            // microfone da fita (só em fitas que o têm)
+  eq:m=>[0x7e,0x05,0x03,0x80+m,0x04,0xff,0xff,0x00,0xef],             // estilo de música: 0 clássico · 1 suave · 2 dinâmico · 3 discoteca
+  sens:v=>[0x7e,0x04,0x06,v,0xff,0xff,0xff,0x00,0xef],
 };
-const ORDER=['power','color','fx','speed','bright'];
+const ORDER=['power','mic','color','fx','eq','speed','sens','bright'], MODE=['color','fx','eq'];
 const conns=new Map();
 function C(id){ if(!conns.has(id)) conns.set(id,{bt:null, ch:null, busy:false, pending:{}, last:{}, status:'off', tries:0, manual:false, onDisc:null}); return conns.get(id); }
 function queue(id,type,val){ const c=C(id), k=JSON.stringify(val); if(c.last[type]===k && !(type in c.pending)) return; c.pending[type]=val; pump(id); }
@@ -651,7 +681,7 @@ async function pump(id){
     c.busy=false; setTimeout(()=>pump(id),40); return; }
   const t=ORDER.find(x=>x in c.pending); if(!t) return;
   const v=c.pending[t]; delete c.pending[t]; c.busy=true;
-  try{ await c.ch.writeValue(new Uint8Array(CMD[t](v))); c.last[t]=JSON.stringify(v); if(t==='fx') delete c.last.color; if(t==='color') delete c.last.fx; }
+  try{ await c.ch.writeValue(new Uint8Array(CMD[t](v))); c.last[t]=JSON.stringify(v); if(MODE.includes(t)) MODE.forEach(o=>{ if(o!==t) delete c.last[o]; }); }
   catch(e){ console.warn('Falha ao enviar', t, e); }
   c.busy=false; setTimeout(()=>pump(id),10);
 }
@@ -663,8 +693,11 @@ function push(id){
   if(!st.on){ queue(id,'power',false); return; }
   queue(id,'power',true);
   const fx=st.fx && FX.find(f=>f.id===st.fx);
-  if(fx){ queue(id,'fx',fx.code(st)); queue(id,'speed',clamp(Math.round(st.speed),0,100)); }
-  else queue(id,'color',ledFor(st));
+  if(!(fx && fx.mic!=null) && c.micOn){ c.micOn=false; queue(id,'mic',false); }
+  if(!fx) queue(id,'color',ledFor(st));
+  else if(fx.gen){ /* as cores vêm do motor da app (ver engineTick) */ }
+  else if(fx.mic!=null){ c.micOn=true; queue(id,'mic',true); queue(id,'eq',fx.mic); queue(id,'sens',clamp(Math.round(st.sens*100),0,100)); }
+  else{ queue(id,'fx',fx.code(st)); queue(id,'speed',clamp(Math.round(st.speed),0,100)); }
   queue(id,'bright',Math.max(1,Math.round(st.b*100)));
 }
 function explain(e){
@@ -715,18 +748,41 @@ function setStatus(id,s){ C(id).status=s; renderStatus(); const tb=document.body
 const statusTxt=id=>({on:'Ligada', connecting:'A ligar…', off:'Sem ligação'})[C(id).status];
 
 /* ================= Efeitos (correm na própria fita) ================= */
+const BASEC=['#ff3b30','#34c759','#0a84ff','#ffd60a','#32d2e6','#ff2d92','#ffffff'];   // ordem da fita: vermelho, verde, azul, amarelo, ciano, magenta, branco
+const BASEN=['Vermelho','Verde','Azul','Amarelo','Ciano','Magenta','Branco'];
+const baseOf=st=> st.fxcol!=null ? st.fxcol : nearestBase(displayRGB(st));
 const FX=[
-  {id:'rainbow', name:'Arco-íris', desc:'Transição suave', kind:'fade', code:()=>0x8a, cols:['#ff3b30','#ff9500','#ffcc00','#34c759','#00c7be','#007aff','#af52de']},
-  {id:'waves', name:'Ondas RGB', desc:'Três cores', kind:'fade', code:()=>0x89, cols:['#ff3b30','#34c759','#007aff']},
-  {id:'breathe', name:'Respirar', desc:'Cor atual', kind:'breathe', code:st=>0x8b+nearestBase(displayRGB(st)), cols:null},
-  {id:'ocean', name:'Oceano', desc:'Verde e azul', kind:'fade', code:()=>0x94, cols:['#30d158','#64d2ff','#0a84ff']},
-  {id:'autumn', name:'Outono', desc:'Vermelho e verde', kind:'fade', code:()=>0x92, cols:['#ff3b30','#ff9f0a','#a2d729']},
-  {id:'disco', name:'Discoteca', desc:'Saltos de cor', kind:'jump', code:()=>0x88, cols:['#ff3b30','#34c759','#007aff','#ffcc00','#00c7be','#af52de','#ffffff']},
-  {id:'jump', name:'Saltos RGB', desc:'Três cores', kind:'jump', code:()=>0x87, cols:['#ff3b30','#34c759','#007aff']},
-  {id:'blink', name:'Piscar', desc:'Cor atual', kind:'blink', code:st=>0x96+nearestBase(displayRGB(st)), cols:null},
-  {id:'party', name:'Festa', desc:'Pisca a cores', kind:'blink', code:()=>0x95, cols:['#ff2d55','#ffcc00','#34c759','#0a84ff','#af52de']},
-  {id:'strobe', name:'Flash', desc:'Branco rápido', kind:'strobe', code:()=>0x9c, cols:['#ffffff','#dfe6f2']},
+  /* Na fita: correm sozinhos (modos de fábrica) */
+  {id:'rainbow', cat:'fita', name:'Arco-íris', desc:'Transição suave', kind:'fade', code:()=>0x8a, cols:['#ff3b30','#ff9500','#ffcc00','#34c759','#00c7be','#007aff','#af52de'], ctl:['speed']},
+  {id:'waves', cat:'fita', name:'Ondas RGB', desc:'Três cores', kind:'fade', code:()=>0x89, cols:['#ff3b30','#34c759','#007aff'], ctl:['speed']},
+  {id:'breathe', cat:'fita', name:'Respirar', desc:'Cor à escolha', kind:'breathe', code:st=>0x8b+baseOf(st), cols:null, pick:true, ctl:['speed']},
+  {id:'ocean', cat:'fita', name:'Oceano', desc:'Verde e azul', kind:'fade', code:()=>0x94, cols:['#30d158','#64d2ff','#0a84ff'], ctl:['speed']},
+  {id:'autumn', cat:'fita', name:'Outono', desc:'Vermelho e verde', kind:'fade', code:()=>0x92, cols:['#ff3b30','#ff9f0a','#a2d729'], ctl:['speed']},
+  {id:'dusk', cat:'fita', name:'Crepúsculo', desc:'Vermelho e azul', kind:'fade', code:()=>0x93, cols:['#ff3b30','#bf5af2','#0a84ff'], ctl:['speed']},
+  {id:'disco', cat:'fita', name:'Discoteca', desc:'Saltos de cor', kind:'jump', code:()=>0x88, cols:['#ff3b30','#34c759','#007aff','#ffcc00','#00c7be','#af52de','#ffffff'], ctl:['speed']},
+  {id:'jump', cat:'fita', name:'Saltos RGB', desc:'Três cores', kind:'jump', code:()=>0x87, cols:['#ff3b30','#34c759','#007aff'], ctl:['speed']},
+  {id:'blink', cat:'fita', name:'Piscar', desc:'Cor à escolha', kind:'blink', code:st=>0x96+baseOf(st), cols:null, pick:true, ctl:['speed']},
+  {id:'party', cat:'fita', name:'Festa', desc:'Pisca a cores', kind:'blink', code:()=>0x95, cols:['#ff2d55','#ffcc00','#34c759','#0a84ff','#af52de'], ctl:['speed']},
+  {id:'strobe', cat:'fita', name:'Flash', desc:'Branco rápido', kind:'strobe', code:()=>0x9c, cols:['#ffffff','#dfe6f2'], ctl:['speed']},
+  /* Música: microfone da fita (corre sozinho) e do telemóvel (app aberta) */
+  {id:'mic0', cat:'musica', name:'Clássico', desc:'Microfone da fita', kind:'blink', mic:0, cols:['#34c759','#ffd60a','#ff3b30'], ctl:['sens']},
+  {id:'mic1', cat:'musica', name:'Suave', desc:'Microfone da fita', kind:'breathe', mic:1, cols:['#64d2ff','#bf5af2'], ctl:['sens']},
+  {id:'mic2', cat:'musica', name:'Dinâmico', desc:'Microfone da fita', kind:'blink', mic:2, cols:['#ff2d55','#ff9f0a','#0a84ff'], ctl:['sens']},
+  {id:'mic3', cat:'musica', name:'Dança', desc:'Microfone da fita', kind:'jump', mic:3, cols:['#ff2d55','#ffcc00','#34c759','#0a84ff','#af52de'], ctl:['sens']},
+  {id:'rhythm', cat:'musica', name:'Ritmo', desc:'Pelo telemóvel', kind:'breathe', cols:null, gen:(t,P)=>{ const lv=micLevel(P.sens), m=P.mem; m.v=Math.max(lv,(m.v||0)*.82); let c=scl(P.base,.1+.9*m.v); if(lv>.6&&lv>=m.v) c=mixc(c,[255,255,255],P.k*.5); return c; }, ctl:['sens','inten']},
+  /* Ambiente: a app envia as cores (precisa de estar aberta) */
+  {id:'fire', cat:'ambiente', name:'Lareira', desc:'Chama a tremer', kind:'breathe', pal:['#ff2a00','#ff7a00','#ffc400'], gen:(t,P)=>{ const n=flick(t*(.6+P.sp*1.6)); return scl(grad(P.cols,n),1-P.k*.6*(1-n)); }, ctl:['speed','inten']},
+  {id:'candle', cat:'ambiente', name:'Vela', desc:'Luz quente', kind:'breathe', pal:['#ff8a1f'], gen:(t,P)=>scl(P.cols[0],1-P.k*.5*(1-flick(t*(.5+P.sp)))), ctl:['speed','inten']},
+  {id:'sunset', cat:'ambiente', name:'Pôr do sol', desc:'Âmbar e coral', kind:'fade', pal:['#ffb347','#ff5e62','#8a3ffc'], gen:(t,P)=>cyc(P.cols,t*(.025+.14*P.sp)), ctl:['speed']},
+  {id:'aurora', cat:'ambiente', name:'Aurora', desc:'Verde e violeta', kind:'fade', pal:['#2dffb2','#22c1ff','#9b5cff'], gen:(t,P)=>scl(cyc(P.cols,t*(.04+.2*P.sp)+.35*Math.sin(t*.4)),1-P.k*.4*(.5-.5*Math.sin(t*.8))), ctl:['speed','inten']},
+  /* Na tua paleta: a app envia as cores (precisa de estar aberta) */
+  {id:'gradient', cat:'cor', name:'Gradiente', desc:'Cores a fundir', kind:'fade', pal:['#ff6b00','#ff2d92','#7d4cff'], gen:(t,P)=>cyc(P.cols,t*(.1+.8*P.sp)), ctl:['speed']},
+  {id:'hop', cat:'cor', name:'Saltos', desc:'Cores a saltar', kind:'jump', pal:['#ff3b30','#34c759','#0a84ff'], gen:(t,P)=>cyc(P.cols,Math.floor(t*(.3+2.2*P.sp)),true), ctl:['speed']},
+  {id:'pulse', cat:'cor', name:'Pulsar', desc:'Respira na cor', kind:'breathe', cols:null, gen:(t,P)=>scl(P.base,1-(.15+.8*P.k)*(.5-.5*Math.cos(t*(.6+3.4*P.sp)))), ctl:['speed','inten']},
+  {id:'twinkle', cat:'cor', name:'Cintilar', desc:'Brilhos na cor', kind:'blink', cols:null, gen:(t,P)=>{ const m=P.mem; m.v+=((1-P.k*Math.pow(Math.random(),2))-m.v)*.55; let c=scl(P.base,m.v); if(Math.random()<.05*P.k) c=mixc(c,[255,255,255],.55); return c; }, ctl:['speed','inten']},
+  {id:'drift', cat:'cor', name:'Deslizar', desc:'Tons da cor', kind:'fade', cols:null, gen:(t,P)=>{ const [h,sat]=toHS(...P.base); return hsv((h+Math.sin(t*(.25+1.6*P.sp))*70*P.k+360)%360,sat); }, ctl:['speed','inten']},
 ];
+FX.forEach(f=>{ if(f.pal) f.cols=f.pal; });
 
 /* ================= Avisos ================= */
 const toastEl=$('#toast'), toastS=new Spring(-1.7,{damping:.8,response:.4}); let toastT=0;
@@ -960,6 +1016,8 @@ pwrS.cb=x=>{ PM=x; drawSun(); };
 
 const brightBar=HBar($('#bright'),{ spin:true, icoSel:'#nosuch', icoFn:v=>{ BV=v; drawSun(); }, detents:BRIGHT_DETENTS, fineBelow:.05, get:()=>TS().b, isOff:()=>!TS().on, set:v=>{ const st=TS(); st.on=true; st.b=v; commit(); } });
 const speedBar=HBar($('#speedBar'),{ get:()=>TS().speed/100, set:v=>{ TS().speed=Math.round(v*100); commit(); } });
+const intBar=HBar($('#intBar'),{ get:()=>TS().inten, set:v=>{ TS().inten=v; commit(); } });
+const sensBar=HBar($('#sensBar'),{ get:()=>TS().sens, set:v=>{ TS().sens=v; commit(); } });
 
 /* ================= Favoritas e brancos ================= */
 let editing=false;
@@ -1029,12 +1087,71 @@ $('#stFav').onclick=addFav;
 $('#pwr').onclick=()=>{ const st=TS(); st.on=!st.on; commit(); };
 
 /* ================= Efeitos ================= */
+const CATS=[{id:'fita',t:'Na fita',s:'Correm sozinhos, mesmo com a app fechada'},{id:'musica',t:'Música',s:'Microfone da fita ou do telemóvel'},{id:'ambiente',t:'Ambiente',s:'Precisam da app aberta'},{id:'cor',t:'Na tua paleta',s:'Precisam da app aberta'}];
+const curFx=()=>{ const id=TS().fx; return id ? FX.find(f=>f.id===id) : null; };
+function selectFx(f){ const st=TS(); if(st.fx===f.id) st.fx=null; else{ st.fx=f.id; st.on=true; if(f.id==='rhythm') startMic(); } commit(); }
 function renderFxGrid(){ const g=$('#fxGrid'); g.innerHTML='';
-  FX.forEach(f=>{ const b=document.createElement('button'); b.className='fxc glass gi'; b.dataset.id=f.id; b.setAttribute('aria-pressed','false');
-    b.innerHTML=`<span class="pv ${f.kind}"></span><span class="tx"><b></b><small></small></span><span class="chk">${ICON.check}</span>`;
-    b.querySelector('b').textContent=f.name; b.querySelector('small').textContent=f.desc;
-    b.onclick=()=>{ const st=TS(); if(st.fx===f.id) st.fx=null; else { st.fx=f.id; st.on=true; } commit(); }; g.appendChild(b); }); }
+  CATS.forEach(c=>{ const sec=document.createElement('section'); sec.className='fx-sec'; sec.innerHTML='<div class="fx-head"><h3></h3><span></span></div><div class="fx-grid"></div>';
+    sec.querySelector('h3').textContent=c.t; sec.querySelector('span').textContent=c.s; const grid=sec.querySelector('.fx-grid');
+    FX.filter(f=>f.cat===c.id).forEach(f=>{ const b=document.createElement('button'); b.className='fxc glass gi'; b.dataset.id=f.id; b.setAttribute('aria-pressed','false');
+      b.innerHTML=`<span class="pv ${f.kind}"></span><span class="tx"><b></b><small></small></span><span class="chk">${ICON.check}</span>`;
+      b.querySelector('b').textContent=f.name; b.querySelector('small').textContent=f.desc; b.onclick=()=>selectFx(f); grid.appendChild(b); });
+    g.appendChild(sec); }); }
 $('#fxStop').onclick=()=>{ TS().fx=null; commit(); };
+
+/* Painel do efeito escolhido: só mostra os controlos que fazem sentido para ele */
+let palSel=-1;
+const palOf=(st,f)=> (st.pal&&st.pal[f.id]) || f.pal;
+const toHex=c=>'#'+c.map(v=>v.toString(16).padStart(2,'0')).join('');
+(function(){ const box=$('#colDots'); const a=document.createElement('button'); a.className='auto'; a.textContent='A'; a.setAttribute('aria-label','Automático: a cor da roda'); a.onclick=()=>{ TS().fxcol=null; commit(); }; box.appendChild(a);
+  BASEC.forEach((c,i)=>{ const b=document.createElement('button'); b.style.setProperty('--c',hexRgb(c).join(',')); b.setAttribute('aria-label',BASEN[i]); b.onclick=()=>{ TS().fxcol=i; commit(); }; box.appendChild(b); }); })();
+function renderDock(st,f){
+  const dock=$('#fxDock'); dock.hidden=!f; if(!f) return;
+  setText($('#fxName'),f.name); const tag=$('#fxTag'); setText(tag, f.gen ? 'Precisa da app aberta' : 'Corre na fita'); tag.classList.toggle('app',!!f.gen);
+  $$('#fxDock .ctl').forEach(c=>{ c.hidden=!f.ctl.includes(c.dataset.c); });
+  $('#colPick').hidden=!f.pick;
+  if(f.pick) [...$('#colDots').children].forEach((b,i)=>setAttr(b,'aria-pressed', i===0 ? st.fxcol==null : st.fxcol===i-1));
+  const pr=$('#palRow'), pf=$('#palFavsRow'); pr.hidden=!f.pal;
+  if(f.pal){ const pal=palOf(st,f), key=f.id+pal.join(), box=$('#palDots');
+    if(box._k!==key){ box._k=key; box.innerHTML=''; pal.forEach((hx,i)=>{ const b=document.createElement('button'); b.style.setProperty('--c',hexRgb(hx).join(',')); b.setAttribute('aria-label','Cor '+(i+1)+': tocar para mudar');
+      b.onclick=()=>{ palSel= palSel===i ? -1 : i; renderDock(TS(),curFx()); }; box.appendChild(b); }); }
+    [...box.children].forEach((b,i)=>setAttr(b,'aria-pressed',palSel===i)); }
+  else palSel=-1;
+  pf.hidden=!(f.pal && palSel>=0);
+  if(!pf.hidden){ const fb=$('#palFavs'), key=store.favs.map(x=>x.h+','+x.s).join('|');
+    if(fb._k!==key){ fb._k=key; fb.innerHTML=''; store.favs.forEach(fv=>{ const b=document.createElement('button'); const c=hsv(fv.h,fv.s); b.style.setProperty('--c',c.join(',')); b.setAttribute('aria-label',colourName(fv.h,fv.s));
+      b.onclick=()=>{ const t=TS(), ff=curFx(); if(!ff||palSel<0) return; const np=[...palOf(t,ff)]; np[palSel]=toHex(c); t.pal=Object.assign({},t.pal,{[ff.id]:np}); palSel=-1; commit(); }; fb.appendChild(b); }); } }
+}
+
+/* ================= Motor dos efeitos da app (a fita recebe uma cor de cada vez) =================
+   Os modos de fábrica correm na fita. Estes não: a app calcula a cor ~11x por segundo e envia-a, por isso só
+   funcionam com a app aberta e a ecrã ligado (pede-se ao iOS para não adormecer o ecrã). */
+const lerp=(a,b,u)=>a+(b-a)*u, mixc=(a,b,u)=>[0,1,2].map(i=>Math.round(lerp(a[i],b[i],u))), scl=(c,v)=>c.map(x=>Math.round(x*clamp(v,0,1)));
+const cyc=(cols,pos,hard)=>{ const n=cols.length; pos=((pos%n)+n)%n; const i=Math.floor(pos), u=pos-i; return hard||n===1 ? cols[i] : mixc(cols[i],cols[(i+1)%n],(1-Math.cos(u*Math.PI))/2); };
+const grad=(cols,u)=>{ const n=cols.length; if(n===1) return cols[0]; const p=clamp(u,0,1)*(n-1), i=Math.min(n-2,Math.floor(p)); return mixc(cols[i],cols[i+1],p-i); };
+const flick=x=>clamp(.5+.28*Math.sin(x*7.1)+.2*Math.sin(x*12.7+1.3)+.14*Math.sin(x*3.3+.7)+(Math.random()-.5)*.14,0,1);
+let au=null, wake=null; const MEM={};
+async function startMic(){ if(au) return au;
+  try{ const stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}});
+    const ctx=new (window.AudioContext||window.webkitAudioContext)(), an=ctx.createAnalyser(); an.fftSize=1024; an.smoothingTimeConstant=.25; ctx.createMediaStreamSource(stream).connect(an);
+    if(ctx.state==='suspended') ctx.resume(); au={ctx,stream,an,buf:new Uint8Array(an.frequencyBinCount)}; return au; }
+  catch(e){ toast('Não consegui usar o microfone. Dá-lhe permissão no Bluefy.',3600); return null; } }
+function stopMic(){ if(!au) return; try{ au.stream.getTracks().forEach(t=>t.stop()); au.ctx.close(); }catch(e){} au=null; }
+function micLevel(sens){ if(!au) return 0; au.an.getByteFrequencyData(au.buf); let sum=0; for(let i=1;i<=7;i++) sum+=au.buf[i];   // graves: ~40 a 300 Hz
+  return clamp(((sum/7/255)*(1+sens*6)-.1)/.6,0,1); }
+async function wakeOn(){ if(wake||!navigator.wakeLock) return; try{ wake=await navigator.wakeLock.request('screen'); wake.addEventListener('release',()=>{ wake=null; }); }catch(e){} }
+function wakeOff(){ try{ wake&&wake.release(); }catch(e){} wake=null; }
+function engineTick(){
+  if(document.hidden) return;
+  const run=store.devices.filter(d=>d.state.on && d.state.fx && FX.find(f=>f.id===d.state.fx)?.gen);
+  if(!run.length){ wakeOff(); stopMic(); return; }
+  wakeOn(); if(!run.some(d=>d.state.fx==='rhythm')) stopMic();
+  const t=performance.now()/1000;
+  run.forEach(d=>{ const c=C(d.id); if(!c.ch) return; const st=d.state, f=FX.find(x=>x.id===st.fx), pal=palOf(st,f);
+    const P={sp:st.speed/100, k:st.inten, sens:st.sens, base:displayRGB(st), cols:pal?pal.map(hexRgb):null, mem:MEM[d.id+f.id]||(MEM[d.id+f.id]={v:1})};
+    try{ queue(d.id,'color',ledFix(f.gen(t,P))); }catch(e){} });
+}
+setInterval(engineTick,90);
 
 /* ================= Luzes: aparelhos e grupos ================= */
 function deviceMenu(d,anchor){ const c=C(d.id);
@@ -1144,7 +1261,7 @@ $$('.sch').forEach(card=>{ const k=card.dataset.k, days=card.querySelector('.day
 $('#schClock').onclick=()=>{ const ms=membersOf(target()); const sent=ms.filter(d=>sendRaw(d.id,clockPacket())).length; toast(sent ? 'Relógio da fita acertado' : 'Liga primeiro a fita por Bluetooth.'); };
 
 /* ================= Desenho do estado ================= */
-const EL={pwr:$('#pwr'), stName:$('#stName'), stSub:$('#stSub'), stRgb:$('#stRgb'), orb:$('#orb'), fxStop:$('#fxStop')};
+const EL={pwr:$('#pwr'), stName:$('#stName'), stSub:$('#stSub'), stRgb:$('#stRgb'), orb:$('#orb')};
 const setText=(el,t)=>{ if(el.textContent!==t) el.textContent=t; };
 const setAttr=(el,k,v)=>{ v=String(v); if(el.getAttribute(k)!==v) el.setAttribute(k,v); };
 let favEls=[], whiteEls=[];   // preenchidas em renderFavs; não se procuram a cada frame
@@ -1154,16 +1271,16 @@ function renderControls(){
   if(!wd) placeKnob(!reduced);
   favEls.forEach(f=>setAttr(f,'aria-current', st.white==null && st.fav===+f.dataset.i));
   whiteEls.forEach((w,i)=>setAttr(w,'aria-pressed', st.white===i));
-  brightBar.sync(true); speedBar.sync(true);
+  brightBar.sync(true);
   pwrS.to(st.on?0:1); setAttr(EL.pwr,'aria-pressed', st.on); setAttr(EL.pwr,'aria-label', st.on?'Desligar a luz':'Ligar a luz');
   setText(EL.stName, st.fx ? FX.find(f=>f.id===st.fx)?.name : st.white!=null ? 'Branco '+WHITES[st.white].name.toLowerCase() : colourName(st.h,st.s));
   setText(EL.stSub, (tg?tg.obj.name:'Sem aparelho')+' · '+(st.on ? (st.fx?'Efeito · ':'')+Math.round(st.b*100)+'%' : 'Desligada'));
-  setText(EL.stRgb, st.fx ? 'A correr na própria fita' : 'A fita recebe '+ledFor(st).join(' · '));
+  setText(EL.stRgb, st.fx ? (FX.find(f=>f.id===st.fx)?.gen ? 'A app envia as cores à fita' : 'A correr na própria fita') : 'A fita recebe '+ledFor(st).join(' · '));
   EL.orb.classList.toggle('off',!st.on);
+  if(document.body.dataset.tab==='efeitos'){ renderDock(st, st.fx ? FX.find(f=>f.id===st.fx) : null); speedBar.sync(true); intBar.sync(true); sensBar.sync(true); }
   if(document.body.dataset.tab==='efeitos') $$('.fxc').forEach(b=>{ const f=FX.find(x=>x.id===b.dataset.id); setAttr(b,'aria-pressed', st.fx===f.id);
-    const cols=f.cols||[`rgb(${show})`,`rgba(${show},.3)`], pv=b.querySelector('.pv');
+    const cols=f.pick ? [BASEC[baseOf(st)]] : f.cols||[`rgb(${show})`,`rgba(${show},.3)`], pv=b.querySelector('.pv');
     pv.style.setProperty('--pv',`conic-gradient(${cols.map((c,i)=>`${c} ${i/cols.length*100}% ${(i+1)/cols.length*100}%`).join(',')})`); pv.style.setProperty('--n',cols.length); });
-  EL.fxStop.hidden=!st.fx;
 }
 const ROOT={};
 function setRoot(k,v){ if(ROOT[k]!==v){ ROOT[k]=v; css.setProperty(k,v); } }
@@ -1199,7 +1316,7 @@ function select(tab,anim=true){
   tabBtns.forEach(b=>b.setAttribute('aria-selected', b.dataset.tab===tab)); $$('section.view').forEach(v=>v.hidden= v.id!=='v-'+tab);
   renderHeader(); renderSched(); placeLens(anim); ls.to(1,{damping:.6,response:.35}); scheduleRender();
   if(tab==='ajustes') requestAnimationFrame(()=>{ layoutVars(); sizeWheel(); brightBar.sync(false); });
-  if(tab==='efeitos') requestAnimationFrame(()=>speedBar.sync(false));
+  if(tab==='efeitos') requestAnimationFrame(()=>{ renderControls(); speedBar.sync(false); intBar.sync(false); sensBar.sync(false); });
 }
 let nd=null;
 nav.addEventListener('pointerdown',e=>{ nav.setPointerCapture(e.pointerId); const r=nav.getBoundingClientRect(); nd={x0:e.clientX, left:r.left, w:r.width, moved:false, vt:tracker()}; ls.to(1.08,{damping:.6,response:.2}); });

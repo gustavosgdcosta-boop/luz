@@ -223,30 +223,49 @@ main{position:relative; z-index:1; flex:1; min-height:0; width:100%; max-width:1
 .speed .hbar{grid-area:auto; height:48px; border-radius:24px}
 
 /* ================= HORÁRIOS ================= */
-#v-horarios .wrap{display:grid; gap:var(--gap); max-width:760px; margin:0 auto}
-.sch-grid{display:grid; gap:var(--gap); grid-template-columns:minmax(0,1fr)}
-.sch-target{width:100%; text-align:left}
+#v-horarios .wrap{display:flex; flex-direction:column; gap:10px; max-width:760px; margin:0 auto}
+.sch-grid{display:flex; flex-direction:column; gap:10px; min-height:0}
+.sch-target{width:100%; text-align:left; padding:10px 14px; gap:12px}
+.sch-target .ib{width:40px; height:40px}
 .sch-target .chev{display:block; margin:0}
-.sch{border-radius:var(--r); padding:16px; min-width:0}
-.sch-head{display:flex; align-items:center; gap:14px}
-.sch-head .ib{width:46px; height:46px}
+.sch{border-radius:var(--r); padding:12px 14px; min-width:0; display:flex; flex-direction:column}
+.sch-head{display:flex; align-items:center; gap:12px}
+.sch-head .ib{width:40px; height:40px}
 .sch-head .tx{flex:1; min-width:0}
 .sch-head b{display:block; font:600 17px/1.2 var(--font)}
-.sch-head small{display:block; font-size:14px; color:var(--ink-2); margin-top:2px; overflow-wrap:anywhere}
-.sch-body{display:flex; flex-direction:column; gap:14px; margin-top:14px; transition:opacity .3s}
+.sch-head small{display:block; font-size:14px; color:var(--ink-2); margin-top:1px; overflow-wrap:anywhere}
+.sch-body{display:flex; flex-direction:column; gap:10px; margin-top:10px; flex:1; transition:opacity .3s}
 .sch.off .sch-body{opacity:.5}
-.sch-row{display:flex; align-items:center; justify-content:space-between; gap:12px}
+.sch-row{display:flex; align-items:center; justify-content:space-between; gap:12px; flex:1}
 .sch-row > span{font:600 15px var(--font); color:var(--ink-2)}
-.sch-time{font:700 28px/1 var(--rounded); font-variant-numeric:tabular-nums; color:var(--ink); background:var(--fill-2); border:0; border-radius:16px; padding:10px 14px; min-width:120px; text-align:center; color-scheme:light dark; -webkit-user-select:auto; user-select:auto}
+.sch-time{font:700 24px/1 var(--rounded); font-variant-numeric:tabular-nums; color:var(--ink); background:var(--fill-2); border:0; border-radius:14px; padding:8px 12px; min-width:112px; text-align:center; color-scheme:light dark; -webkit-user-select:auto; user-select:auto}
 .days{display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); gap:6px}
-.day{height:42px; border-radius:21px; background:var(--fill-2); color:var(--ink-2); font:600 15px var(--font); transition:background-color .2s, color .2s, transform .3s cubic-bezier(.3,1.6,.5,1)}
+.day{height:38px; border-radius:19px; background:var(--fill-2); color:var(--ink-2); font:600 15px var(--font); transition:background-color .2s, color .2s, transform .3s cubic-bezier(.3,1.6,.5,1)}
 .day:active{transform:scale(.9)}
 .day[aria-pressed="true"]{background:rgb(var(--tint)); color:#fff}
-.sch-note{margin:2px 6px 0; font-size:14px; line-height:1.4; color:var(--ink-2)}
-.sch-note.small{font-size:13px; color:var(--ink-3)}
-.sch-foot{display:flex; flex-direction:column; align-items:flex-start; gap:6px; padding:0 4px 4px}
-.sch-foot .link-btn{margin:0 0 0 -8px}
-@media (min-width:700px) and (min-height:600px){ .sch-grid{grid-template-columns:repeat(2,minmax(0,1fr))} .sch{padding:22px} .sch-time{font-size:34px} }
+.sch-foot{display:flex; align-items:center; justify-content:space-between; gap:10px; padding:0 4px}
+.sch-note{margin:0; font-size:13px; line-height:1.3; color:var(--ink-2)}
+.sch-foot .link-btn{margin:0 -8px 0 0; white-space:nowrap}
+#v-horarios .scroll{padding:6px 24px 8px; margin:-6px -24px 0}
+@media (max-height:620px){
+  #v-horarios .wrap, .sch-grid{gap:6px} .sch-target{padding:7px 12px} .sch-target .ib{width:34px; height:34px}
+  .sch{padding:10px 12px} .sch-head .ib{width:34px; height:34px} .sch-body{gap:8px; margin-top:8px}
+  .sch-time{font-size:21px; padding:4px 10px} .day{height:32px} .sch-body{gap:6px}
+}
+@media (min-width:700px) and (min-height:600px){
+  #v-horarios .wrap{max-width:none; height:100%; display:grid; grid-template-rows:auto minmax(0,1fr) auto; gap:var(--gap)}
+  .sch-grid{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); grid-auto-rows:minmax(0,1fr); gap:var(--gap)}
+  .sch-target{padding:14px 22px; gap:16px} .sch-target .ib{width:52px; height:52px}
+  .sch{padding:24px}
+  .sch-head{gap:16px} .sch-head .ib{width:56px; height:56px} .sch-head b{font-size:22px} .sch-head small{font-size:16px}
+  .sch-body{gap:18px; margin-top:16px}
+  .sch-row > span{font-size:17px}
+  .sch-time{font-size:clamp(36px, 7vmin, 60px); padding:12px 26px; min-width:0; border-radius:20px}
+  .day{height:clamp(46px, 7.5vmin, 64px); border-radius:32px; font-size:19px}
+  .days{gap:8px}
+  .sch-note{font-size:15px} .sch-foot{padding:0 8px}
+}
+@media (min-width:700px) and (min-height:600px) and (orientation:portrait){ .sch-grid{grid-template-columns:minmax(0,1fr)} }
 /* ================= Separadores (lente arrastável) ================= */
 nav.tabs{position:fixed; z-index:9; left:max(var(--pad), env(safe-area-inset-left)); right:max(var(--pad), env(safe-area-inset-right));
   bottom:calc(12px + env(safe-area-inset-bottom)); height:var(--tabh); border-radius:calc(var(--tabh) / 2); padding:4px; display:grid; grid-auto-flow:column; grid-auto-columns:1fr; touch-action:none; background:var(--g-reg)}
@@ -380,6 +399,7 @@ body[data-bt="off"] #btBtn{background:var(--bt-red); color:#fff; box-shadow:inse
 @media (prefers-reduced-motion: reduce){ #btBtn, #ambient i, .pv, .palette.editing .fav, .palette.editing .white{animation:none !important} .gi.lit{transform:none} }
 @media (prefers-reduced-transparency: reduce){ .glass{background:var(--g-strong) !important} .glass::before{-webkit-backdrop-filter:none; backdrop-filter:none} #ambient{opacity:.25} }
 @media (prefers-contrast: more){ .glass::after{box-shadow:inset 0 0 0 1.5px var(--ink)} }
+@media (min-width:700px) and (max-width:899px) and (min-height:600px){ nav.tabs{grid-auto-columns:100px} h1{font-size:30px} }
 </style>
 </head>
 <body data-tab="ajustes" data-bt="off">
@@ -452,8 +472,7 @@ body[data-bt="off"] #btBtn{background:var(--bt-red); color:#fff; box-shadow:inse
           <div class="sch-body"><div class="sch-row"><span>Hora</span><input class="sch-time" type="time" value="19:00" aria-label="Hora de apagar"></div><div class="days"></div></div>
         </div>
       </div>
-      <div class="sch-foot"><p class="sch-note" id="schNote"></p><button class="link-btn" id="schClock">Acertar o relógio da fita</button>
-        <p class="sch-note small">A fita guarda um horário para acender e outro para apagar, nos dias escolhidos. Não faz contagem decrescente nem acende devagar.</p></div>
+      <div class="sch-foot"><p class="sch-note" id="schNote"></p><button class="link-btn" id="schClock">Acertar relógio</button></div>
     </div></div>
   </section>
 </main>
@@ -496,7 +515,7 @@ body[data-bt="off"] #btBtn{background:var(--bt-red); color:#fff; box-shadow:inse
 <script>
 'use strict';
 /* ================= Utilidades ================= */
-const VERSION='3.34';
+const VERSION='3.35';
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const css=document.documentElement.style;
@@ -1111,7 +1130,7 @@ function renderSched(){
     card.querySelectorAll('.day').forEach((b,i)=>setAttr(b,'aria-pressed',!!(x.days>>i&1)));
     setText(card.querySelector('.sch-sum'), x.en ? daysText(x.days)+' · '+x.t : 'Desligado'); });
   const ms=membersOf(tg), all=ms.length>0 && ms.every(d=>C(d.id).status==='on');
-  setText($('#schNote'), all ? 'A fita guarda estes horários e cumpre-os sozinha, mesmo com a app fechada.' : 'Sem ligação à fita. Os horários seguem quando ligares.');
+  setText($('#schNote'), all ? 'A fita cumpre sozinha, com a app fechada.' : 'Sem ligação. Segue quando ligares.');
 }
 function schedChanged(){ const tg=target(); if(!tg) return; const sc=tg.obj.sched, ms=membersOf(tg); sc.touched=true;
   ms.forEach(d=>{ if(d!==tg.obj) d.sched=clone(sc); syncStrip(d.id); }); save(); renderSched();
